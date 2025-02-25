@@ -22,9 +22,8 @@ public class TeacherController {
         return teacherService.getTeachersBySubject(subject);
     }
 
-    @GetMapping("/teachers/{surname}")
-    public Teacher getTeacherBySurname(@PathVariable String surname) {
-        return Teacher.builder().surname(surname).name("Юрий")
-                .patronym("Александрович").subject("АиЛОЦУ").build();
+    @GetMapping("/teachers/{id}")
+    public Teacher getTeacherByName(@PathVariable int id) {
+        return Teacher.builder().id(id).name("Луцик Юрий Александрович").subject("АиЛОЦУ").build();
     }
 }

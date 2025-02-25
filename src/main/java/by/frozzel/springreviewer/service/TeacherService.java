@@ -10,10 +10,8 @@ public class TeacherService {
 
     public List<Teacher> getTeachersBySubject(String subject) {
         return Arrays.asList(
-                Teacher.builder().surname("Скиба").name("Ирина")
-                        .patronym("Геннадьевна").subject(subject).build(),
-                Teacher.builder().surname("Луцик").name("Юрий")
-                        .patronym("Александрович").subject(subject).build()
+                Teacher.builder().id(1).name("Лукьянова Ирина Викторовна").subject(subject).build(),
+                Teacher.builder().id(2).name("Луцик Юрий Александрович").subject(subject).build()
         );
     }
 }

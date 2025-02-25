@@ -6,8 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class Teacher {
-    private String surname;
+    private int id;
     private String name;
-    private String patronym;
     private String subject;
 }
