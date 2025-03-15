@@ -4,7 +4,6 @@ import by.frozzel.springreviewer.model.Review;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Repository
 public class ReviewDAO {
@@ -17,7 +16,7 @@ public class ReviewDAO {
     public List<Review> findByTeacherId(int teacherId) {
         return reviews.stream()
                 .filter(r -> r.getTeacherId() == teacherId)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Review findById(int id) {
