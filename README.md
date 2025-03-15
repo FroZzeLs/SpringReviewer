@@ -17,6 +17,9 @@
 - **Frontend**: React???
 - **API**: RESTful API
 
+## Sonar
+https://sonarcloud.io/project/overview?id=FroZzeLs_SpringReviewer
+
 ## Контакты
 - Автор: Егоренков Сергей Сергеевич
 - Email: egorenkovs12@gmail.com
