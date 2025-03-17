@@ -17,7 +17,7 @@ public class ReviewDao {
     public Optional<List<Review>> findByTeacherId(int teacherId) {
         List<Review> result = reviews.stream()
                 .filter(review -> review.getTeacherId() == teacherId)
-                .collect(Collectors.toList());
+                .toList();
 
         return result.isEmpty() ? Optional.empty() : Optional.of(result);
     }
