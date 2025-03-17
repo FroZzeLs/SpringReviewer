@@ -24,4 +24,9 @@ public class ReviewController {
     public Review getReviewById(@PathVariable int id) {
         return reviewService.getReviewById(id); 
     }
+
+    @GetMapping("/all")
+    public List<Review> getAllReviews() {
+        return reviewService.getAllReviews();
+    }
 }

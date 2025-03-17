@@ -25,4 +25,8 @@ public class ReviewDAO {
                 .findFirst()
                 .orElse(null);
     }
+
+    public List<Review> findAll() {
+        return reviews;
+    }
 }
