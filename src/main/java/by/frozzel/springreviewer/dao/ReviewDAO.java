@@ -9,7 +9,7 @@ import java.util.List;
 public class ReviewDAO {
     private final List<Review> reviews = List.of(
             new Review(1, 1, "Лучший преподаватель java!"),
-            new Review(2, 2, "Весёлый дед, норм поясняет за предмет, помогает с лабами"),
+            new Review(2, 1, "Весёлый дед, норм поясняет за предмет, помогает с лабами"),
             new Review(3, 3, "Как эта бабка проходит психолога на медкомиссии...")
     );
 
