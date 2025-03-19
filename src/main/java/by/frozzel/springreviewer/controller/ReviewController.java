@@ -2,12 +2,10 @@ package by.frozzel.springreviewer.controller;
 
 import by.frozzel.springreviewer.model.Review;
 import by.frozzel.springreviewer.service.ReviewService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/reviews")
@@ -19,17 +17,28 @@ public class ReviewController {
     }
 
     @GetMapping
-    public List<Review> getReviewsByTeacher(@RequestParam int teacherId) {
-        return reviewService.getReviewsByTeacher(teacherId);
+    public List<Review> getAllReviews() {
+        return reviewService.getAllReviews();
     }
 
     @GetMapping("/{id}")
-    public Review getReviewById(@PathVariable int id) {
-        return reviewService.getReviewById(id); 
+    public ResponseEntity<Review> getReviewById(@PathVariable Long id) {
+        return ResponseEntity.ok(reviewService.getReviewById(id));
     }
 
-    @GetMapping("/all")
-    public List<Review> getAllReviews() {
-        return reviewService.getAllReviews();
+    @PostMapping
+    public ResponseEntity<Review> createReview(@RequestBody Review review) {
+        return ResponseEntity.ok(reviewService.createReview(review));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Review> updateReview(@PathVariable Long id, @RequestBody Review review) {
+        return ResponseEntity.ok(reviewService.updateReview(id, review));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteReview(@PathVariable Long id) {
+        reviewService.deleteReview(id);
+        return ResponseEntity.noContent().build();
     }
 }
