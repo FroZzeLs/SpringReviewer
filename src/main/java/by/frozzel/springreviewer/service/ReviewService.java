@@ -5,10 +5,10 @@ import by.frozzel.springreviewer.dto.ReviewDisplayDto;
 import by.frozzel.springreviewer.mapper.ReviewMapper;
 import by.frozzel.springreviewer.model.Review;
 import by.frozzel.springreviewer.repository.ReviewRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor

@@ -4,10 +4,9 @@ import by.frozzel.springreviewer.dto.TeacherCreateDto;
 import by.frozzel.springreviewer.dto.TeacherDisplayDto;
 import by.frozzel.springreviewer.model.Subject;
 import by.frozzel.springreviewer.model.Teacher;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
 
 @Component
 public class TeacherMapper {

@@ -9,10 +9,9 @@ import by.frozzel.springreviewer.repository.SubjectRepository;
 import by.frozzel.springreviewer.repository.TeacherRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor

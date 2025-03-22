@@ -3,11 +3,18 @@ package by.frozzel.springreviewer.controller;
 import by.frozzel.springreviewer.dto.TeacherCreateDto;
 import by.frozzel.springreviewer.dto.TeacherDisplayDto;
 import by.frozzel.springreviewer.service.TeacherService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/teachers")
@@ -26,7 +33,8 @@ public class TeacherController {
     }
 
     @GetMapping("/search")
-    public TeacherDisplayDto getTeacherByFullName(@RequestParam String surname, @RequestParam String name) {
+    public TeacherDisplayDto getTeacherByFullName(@RequestParam String surname,
+                                                  @RequestParam String name) {
         return teacherService.getTeacherByFullName(surname, name);
     }
 
@@ -36,7 +44,8 @@ public class TeacherController {
     }
 
     @PutMapping("/{id}")
-    public TeacherDisplayDto updateTeacher(@PathVariable Integer id, @RequestBody TeacherCreateDto teacherCreateDto) {
+    public TeacherDisplayDto updateTeacher(@PathVariable Integer id,
+                                           @RequestBody TeacherCreateDto teacherCreateDto) {
         return teacherService.updateTeacher(id, teacherCreateDto);
     }
 

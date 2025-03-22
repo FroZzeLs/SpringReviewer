@@ -43,8 +43,8 @@ public class ReviewMapper {
         return new ReviewDisplayDto(
                 review.getId(),
                 review.getUser().getUsername(),
-                review.getTeacher().getSurname() + " " +
-                        review.getTeacher().getName() + " " + review.getTeacher().getPatronym(),
+                review.getTeacher().getSurname() + " "
+                        + review.getTeacher().getName() + " " + review.getTeacher().getPatronym(),
                 review.getSubject().getName(),
                 review.getDate(),
                 review.getGrade(),

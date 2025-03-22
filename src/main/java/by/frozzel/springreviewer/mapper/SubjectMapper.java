@@ -3,10 +3,9 @@ package by.frozzel.springreviewer.mapper;
 import by.frozzel.springreviewer.dto.SubjectCreateDto;
 import by.frozzel.springreviewer.dto.SubjectDisplayDto;
 import by.frozzel.springreviewer.model.Subject;
-import org.springframework.stereotype.Component;
-
 import java.util.Collections;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
 
 @Component
 public class SubjectMapper {
@@ -23,7 +22,8 @@ public class SubjectMapper {
                 subject.getName(),
                 subject.getTeachers() != null
                         ? subject.getTeachers().stream()
-                        .map(teacher -> teacher.getSurname() + " " + teacher.getName() + " " + teacher.getPatronym())
+                        .map(teacher -> teacher.getSurname() + " " + teacher.getName() + " "
+                                + teacher.getPatronym())
                         .collect(Collectors.toList())
                         : Collections.emptyList() // 👈 Обработка null
         );
