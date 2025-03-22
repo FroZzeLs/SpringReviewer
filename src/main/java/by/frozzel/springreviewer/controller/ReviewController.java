@@ -2,6 +2,7 @@ package by.frozzel.springreviewer.controller;
 
 import by.frozzel.springreviewer.dto.ReviewCreateDto;
 import by.frozzel.springreviewer.dto.ReviewDisplayDto;
+import by.frozzel.springreviewer.model.Review;
 import by.frozzel.springreviewer.service.ReviewService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,11 @@ public class ReviewController {
         return reviewService.getReviewById(id);
     }
 
+    @GetMapping("/username/{username}")
+    public List<ReviewDisplayDto> getReviewsByUsername(@PathVariable String username) {
+        return reviewService.getReviewsByUserUsername(username);
+    }
+
     @DeleteMapping("/{id}")
     public void deleteReview(@PathVariable Integer id) {
         reviewService.deleteReview(id);
@@ -47,12 +53,12 @@ public class ReviewController {
     }
 
     @GetMapping("/teacher/{teacherId}")
-    public List<ReviewDisplayDto> getReviewsByTeacher(@PathVariable Integer teacherId) {
+    public List<ReviewDisplayDto> getReviewsByTeacherId(@PathVariable Integer teacherId) {
         return reviewService.getReviewsByTeacherId(teacherId);
     }
 
-    @GetMapping("/user/{userId}")
-    public List<ReviewDisplayDto> getReviewsByUser(@PathVariable Integer userId) {
+    @GetMapping("/userId/{userId}")
+    public List<ReviewDisplayDto> getReviewsByUserId(@PathVariable Integer userId) {
         return reviewService.getReviewsByUserId(userId);
     }
 

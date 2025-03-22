@@ -11,7 +11,9 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -68,5 +70,21 @@ public class TeacherService {
             teacher.getSubjects().add(subject);
             teacherRepository.save(teacher);
         }
+    }
+
+    @Transactional
+    public void removeSubjectFromTeacher(int teacherId, int subjectId) {
+        Teacher teacher = teacherRepository.findById(teacherId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Teacher not found"));
+
+        Subject subject = subjectRepository.findById(subjectId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Subject not found"));
+
+        if (!teacher.getSubjects().contains(subject)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Teacher does not teach this subject");
+        }
+
+        teacher.getSubjects().remove(subject);
+        teacherRepository.save(teacher);
     }
 }

@@ -61,4 +61,10 @@ public class TeacherController {
         teacherService.assignSubjectToTeacher(teacherId, subjectId);
         return ResponseEntity.ok("Предмет успешно добавлен преподавателю");
     }
+
+    @DeleteMapping("/{teacherId}/subjects/{subjectId}")
+    public ResponseEntity<Void> removeSubjectFromTeacher(@PathVariable int teacherId, @PathVariable int subjectId) {
+        teacherService.removeSubjectFromTeacher(teacherId, subjectId);
+        return ResponseEntity.noContent().build();
+    }
 }
