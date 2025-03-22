@@ -1,4 +1,4 @@
-package by.frozzel.springreviewer.dao;
+package by.frozzel.springreviewer.repository;
 
 import by.frozzel.springreviewer.model.Teacher;
 import org.springframework.data.jpa.repository.JpaRepository;

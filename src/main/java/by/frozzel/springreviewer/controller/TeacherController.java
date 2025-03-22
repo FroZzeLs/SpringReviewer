@@ -1,7 +1,9 @@
 package by.frozzel.springreviewer.controller;
 
-import by.frozzel.springreviewer.model.Teacher;
+import by.frozzel.springreviewer.dto.TeacherCreateDto;
+import by.frozzel.springreviewer.dto.TeacherDisplayDto;
 import by.frozzel.springreviewer.service.TeacherService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,36 +11,45 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/teachers")
+@RequiredArgsConstructor
 public class TeacherController {
     private final TeacherService teacherService;
 
-    public TeacherController(TeacherService teacherService) {
-        this.teacherService = teacherService;
-    }
-
     @GetMapping
-    public List<Teacher> getAllTeachers() {
+    public List<TeacherDisplayDto> getAllTeachers() {
         return teacherService.getAllTeachers();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Teacher> getTeacherBySurnameAndName(@RequestParam String surname, @RequestParam String name) {
-        return ResponseEntity.ok(teacherService.getTeacherBySurnameAndName(surname, name));
+    public TeacherDisplayDto getTeacherById(@PathVariable Integer id) {
+        return teacherService.getTeacherById(id);
+    }
+
+    @GetMapping("/search")
+    public TeacherDisplayDto getTeacherByFullName(@RequestParam String surname, @RequestParam String name) {
+        return teacherService.getTeacherByFullName(surname, name);
     }
 
     @PostMapping
-    public ResponseEntity<Teacher> createTeacher(@RequestBody Teacher teacher) {
-        return ResponseEntity.ok(teacherService.createTeacher(teacher));
+    public TeacherDisplayDto createTeacher(@RequestBody TeacherCreateDto teacherCreateDto) {
+        return teacherService.createTeacher(teacherCreateDto);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Teacher> updateTeacher(@RequestParam String surname, @RequestParam String name, @RequestBody Teacher teacher) {
-        return ResponseEntity.ok(teacherService.updateTeacher(surname, name, teacher));
+    public TeacherDisplayDto updateTeacher(@PathVariable Integer id, @RequestBody TeacherCreateDto teacherCreateDto) {
+        return teacherService.updateTeacher(id, teacherCreateDto);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTeacher(@RequestParam String surname, @RequestParam String name) {
-        teacherService.deleteTeacher(surname, name);
-        return ResponseEntity.noContent().build();
+    public void deleteTeacher(@PathVariable Integer id) {
+        teacherService.deleteTeacher(id);
+    }
+
+    @PostMapping("/{teacherId}/subjects/{subjectId}")
+    public ResponseEntity<String> assignSubjectToTeacher(
+            @PathVariable int teacherId,
+            @PathVariable int subjectId) {
+        teacherService.assignSubjectToTeacher(teacherId, subjectId);
+        return ResponseEntity.ok("Предмет успешно добавлен преподавателю");
     }
 }

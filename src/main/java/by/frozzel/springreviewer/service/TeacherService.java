@@ -1,44 +1,73 @@
 package by.frozzel.springreviewer.service;
 
+import by.frozzel.springreviewer.dto.TeacherCreateDto;
+import by.frozzel.springreviewer.dto.TeacherDisplayDto;
+import by.frozzel.springreviewer.mapper.TeacherMapper;
+import by.frozzel.springreviewer.model.Subject;
 import by.frozzel.springreviewer.model.Teacher;
-import by.frozzel.springreviewer.dao.TeacherRepository;
-import org.springframework.http.HttpStatus;
+import by.frozzel.springreviewer.repository.SubjectRepository;
+import by.frozzel.springreviewer.repository.TeacherRepository;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class TeacherService {
     private final TeacherRepository teacherRepository;
+    private final SubjectRepository subjectRepository;
+    private final TeacherMapper teacherMapper;
 
-    public TeacherService(TeacherRepository teacherRepository) {
-        this.teacherRepository = teacherRepository;
+    public List<TeacherDisplayDto> getAllTeachers() {
+        return teacherRepository.findAll().stream()
+                .map(teacherMapper::toDto)
+                .toList();
     }
 
-    public List<Teacher> getAllTeachers() {
-        return teacherRepository.findAll();
+    public TeacherDisplayDto getTeacherById(Integer id) {
+        Teacher teacher = teacherRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Teacher not found"));
+        return teacherMapper.toDto(teacher);
     }
 
-    public Teacher getTeacherBySurnameAndName(String surname, String name) {
-        return teacherRepository.findBySurnameAndName(surname, name)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Преподаватель не найден"));
+    public TeacherDisplayDto createTeacher(TeacherCreateDto teacherCreateDto) {
+        Teacher teacher = teacherMapper.toEntity(teacherCreateDto);
+        return teacherMapper.toDto(teacherRepository.save(teacher));
     }
 
-    public Teacher createTeacher(Teacher teacher) {
-        return teacherRepository.save(teacher);
+    public TeacherDisplayDto updateTeacher(Integer id, TeacherCreateDto teacherCreateDto) {
+        Teacher teacher = teacherRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Teacher not found"));
+        teacher.setSurname(teacherCreateDto.getSurname());
+        teacher.setName(teacherCreateDto.getName());
+        teacher.setPatronym(teacherCreateDto.getPatronym());
+        return teacherMapper.toDto(teacherRepository.save(teacher));
     }
 
-    public Teacher updateTeacher(String surname, String name, Teacher updatedTeacher) {
-        Teacher existingTeacher = getTeacherBySurnameAndName(surname, name);
-        existingTeacher.setName(updatedTeacher.getName());
-        existingTeacher.setSurname(updatedTeacher.getSurname());
-        existingTeacher.setPatronym(updatedTeacher.getPatronym());
-        return teacherRepository.save(existingTeacher);
+    public void deleteTeacher(Integer id) {
+        teacherRepository.deleteById(id);
     }
 
-    public void deleteTeacher(String surname, String name) {
-        Teacher teacher = getTeacherBySurnameAndName(surname, name);
-        teacherRepository.delete(teacher);
+    public TeacherDisplayDto getTeacherByFullName(String surname, String name) {
+        Teacher teacher = teacherRepository.findBySurnameAndName(surname, name)
+                .orElseThrow(() -> new RuntimeException("Teacher not found"));
+        return teacherMapper.toDto(teacher);
+    }
+
+    @Transactional
+    public void assignSubjectToTeacher(int teacherId, int subjectId) {
+        Teacher teacher = teacherRepository.findById(teacherId)
+                .orElseThrow(() -> new EntityNotFoundException("Преподаватель не найден"));
+
+        Subject subject = subjectRepository.findById(subjectId)
+                .orElseThrow(() -> new EntityNotFoundException("Предмет не найден"));
+
+        if (!teacher.getSubjects().contains(subject)) {
+            teacher.getSubjects().add(subject);
+            teacherRepository.save(teacher);
+        }
     }
 }

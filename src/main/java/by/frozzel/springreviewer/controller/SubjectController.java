@@ -1,7 +1,9 @@
 package by.frozzel.springreviewer.controller;
 
-import by.frozzel.springreviewer.model.Subject;
+import by.frozzel.springreviewer.dto.SubjectCreateDto;
+import by.frozzel.springreviewer.dto.SubjectDisplayDto;
 import by.frozzel.springreviewer.service.SubjectService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,36 +11,45 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/subjects")
+@RequiredArgsConstructor
 public class SubjectController {
     private final SubjectService subjectService;
 
-    public SubjectController(SubjectService subjectService) {
-        this.subjectService = subjectService;
+    @PostMapping
+    public ResponseEntity<SubjectDisplayDto> createSubject(@RequestBody SubjectCreateDto dto) {
+        return ResponseEntity.ok(subjectService.createSubject(dto));
     }
 
     @GetMapping
-    public List<Subject> getAllSubjects() {
-        return subjectService.getAllSubjects();
+    public ResponseEntity<List<SubjectDisplayDto>> getAllSubjects() {
+        return ResponseEntity.ok(subjectService.getAllSubjects());
     }
 
-    @GetMapping("/{name}")
-    public ResponseEntity<Subject> getSubjectByName(@PathVariable String name) {
-        return ResponseEntity.ok(subjectService.getSubjectByName(name));
+    @GetMapping("/{id}")
+    public ResponseEntity<SubjectDisplayDto> getSubjectById(@PathVariable Integer id) {
+        return subjectService.getSubjectById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public ResponseEntity<Subject> createSubject(@RequestBody Subject subject) {
-        return ResponseEntity.ok(subjectService.createSubject(subject));
+    @GetMapping("/name/{name}")
+    public ResponseEntity<SubjectDisplayDto> getSubjectByName(@PathVariable String name) {
+        return subjectService.getSubjectByName(name)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/{name}")
-    public ResponseEntity<Subject> updateSubject(@PathVariable String name, @RequestBody Subject subject) {
-        return ResponseEntity.ok(subjectService.updateSubject(name, subject));
+    @PutMapping("/{id}")
+    public ResponseEntity<SubjectDisplayDto> updateSubject(@PathVariable Integer id, @RequestBody SubjectCreateDto dto) {
+        return subjectService.updateSubject(id, dto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/{name}")
-    public ResponseEntity<Void> deleteSubject(@PathVariable String name) {
-        subjectService.deleteSubject(name);
-        return ResponseEntity.noContent().build();
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteSubject(@PathVariable Integer id) {
+        return subjectService.deleteSubject(id)
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 }

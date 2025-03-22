@@ -1,42 +1,59 @@
 package by.frozzel.springreviewer.service;
 
+import by.frozzel.springreviewer.dto.SubjectCreateDto;
+import by.frozzel.springreviewer.dto.SubjectDisplayDto;
+import by.frozzel.springreviewer.mapper.SubjectMapper;
 import by.frozzel.springreviewer.model.Subject;
-import by.frozzel.springreviewer.dao.SubjectRepository;
-import org.springframework.http.HttpStatus;
+import by.frozzel.springreviewer.repository.SubjectRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class SubjectService {
     private final SubjectRepository subjectRepository;
+    private final SubjectMapper subjectMapper;
 
-    public SubjectService(SubjectRepository subjectRepository) {
-        this.subjectRepository = subjectRepository;
+    @Transactional
+    public SubjectDisplayDto createSubject(SubjectCreateDto dto) {
+        Subject subject = subjectMapper.toEntity(dto);
+        return subjectMapper.toDto(subjectRepository.save(subject));
     }
 
-    public List<Subject> getAllSubjects() {
-        return subjectRepository.findAll();
+    public List<SubjectDisplayDto> getAllSubjects() {
+        return subjectRepository.findAll().stream()
+                .map(subjectMapper::toDto)
+                .collect(Collectors.toList());
     }
 
-    public Subject getSubjectByName(String name) {
-        return subjectRepository.findByName(name)
-                .orElseThrow(() -> new RuntimeException("Предмет с названием '" + name + "' не найден!"));
+    public Optional<SubjectDisplayDto> getSubjectById(Integer id) {
+        return subjectRepository.findById(id).map(subjectMapper::toDto);
     }
 
-    public Subject createSubject(Subject subject) {
-        return subjectRepository.save(subject);
+    public Optional<SubjectDisplayDto> getSubjectByName(String name) {
+        return subjectRepository.findByName(name).map(subjectMapper::toDto);
     }
 
-    public Subject updateSubject(String name, Subject updatedSubject) {
-        Subject existingSubject = getSubjectByName(name);
-        existingSubject.setName(updatedSubject.getName());
-        return subjectRepository.save(existingSubject);
+    @Transactional
+    public Optional<SubjectDisplayDto> updateSubject(Integer id, SubjectCreateDto dto) {
+        return subjectRepository.findById(id)
+                .map(existingSubject -> {
+                    existingSubject.setName(dto.getName());
+                    return subjectMapper.toDto(subjectRepository.save(existingSubject));
+                });
     }
 
-    public void deleteSubject(String name) {
-        Subject subject = getSubjectByName(name);
-        subjectRepository.delete(subject);
+    @Transactional
+    public boolean deleteSubject(Integer id) {
+        if (subjectRepository.existsById(id)) {
+            subjectRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 }

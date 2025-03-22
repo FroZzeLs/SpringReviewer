@@ -1,42 +1,59 @@
 package by.frozzel.springreviewer.service;
 
+import by.frozzel.springreviewer.dto.UserCreateDto;
+import by.frozzel.springreviewer.dto.UserDisplayDto;
+import by.frozzel.springreviewer.mapper.UserMapper;
 import by.frozzel.springreviewer.model.User;
-import by.frozzel.springreviewer.dao.UserRepository;
-import org.springframework.http.HttpStatus;
+import by.frozzel.springreviewer.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    @Transactional
+    public UserDisplayDto createUser(UserCreateDto dto) {
+        User user = userMapper.toEntity(dto);
+        return userMapper.toDto(userRepository.save(user));
     }
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<UserDisplayDto> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(userMapper::toDto)
+                .collect(Collectors.toList());
     }
 
-    public User getUserById(Long id) {
+    public Optional<UserDisplayDto> getUserById(Integer id) {
+        return userRepository.findById(id).map(userMapper::toDto);
+    }
+
+    public Optional<UserDisplayDto> getUserByUsername(String username) {
+        return userRepository.findByUsername(username).map(userMapper::toDto);
+    }
+
+    @Transactional
+    public Optional<UserDisplayDto> updateUser(Integer id, UserCreateDto dto) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
+                .map(user -> {
+                    user.setUsername(dto.getUsername());
+                    return userMapper.toDto(userRepository.save(user));
+                });
     }
 
-    public User createUser(User user) {
-        return userRepository.save(user);
-    }
-
-    public User updateUser(Long id, User updatedUser) {
-        User existingUser = getUserById(id);
-        existingUser.setUsername(updatedUser.getUsername());
-        return userRepository.save(existingUser);
-    }
-
-    public void deleteUser(Long id) {
-        User user = getUserById(id);
-        userRepository.delete(user);
+    @Transactional
+    public boolean deleteUser(Integer id) {
+        if (userRepository.existsById(id)) {
+            userRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 }

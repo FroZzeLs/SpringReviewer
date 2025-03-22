@@ -1,48 +1,65 @@
 package by.frozzel.springreviewer.service;
 
+import by.frozzel.springreviewer.dto.ReviewCreateDto;
+import by.frozzel.springreviewer.dto.ReviewDisplayDto;
+import by.frozzel.springreviewer.mapper.ReviewMapper;
 import by.frozzel.springreviewer.model.Review;
-import by.frozzel.springreviewer.dao.ReviewRepository;
-import org.springframework.http.HttpStatus;
+import by.frozzel.springreviewer.repository.ReviewRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ReviewService {
     private final ReviewRepository reviewRepository;
+    private final ReviewMapper reviewMapper;
 
-    public ReviewService(ReviewRepository reviewRepository) {
-        this.reviewRepository = reviewRepository;
+    public ReviewDisplayDto saveReview(ReviewCreateDto reviewCreateDto) {
+        Review review = reviewMapper.toEntity(reviewCreateDto);
+        return reviewMapper.toDto(reviewRepository.save(review));
     }
 
-    public List<Review> getAllReviews() {
-        return reviewRepository.findAll();
+    public List<ReviewDisplayDto> getAllReviews() {
+        return reviewRepository.findAll()
+                .stream()
+                .map(reviewMapper::toDto)
+                .collect(Collectors.toList());
     }
 
-    public Review getReviewById(Long id) {
+    public ReviewDisplayDto getReviewById(Integer id) {
         return reviewRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Отзыв не найден"));
+                .map(reviewMapper::toDto)
+                .orElseThrow(() -> new RuntimeException("Review not found with ID: " + id));
     }
 
-    public List<Review> getReviewsByTeacher(Long teacherId) {
-        return reviewRepository.findByTeacherId(teacherId);
+    public void deleteReview(Integer id) {
+        reviewRepository.deleteById(id);
     }
 
-    public Review createReview(Review review) {
-        return reviewRepository.save(review);
+    public ReviewDisplayDto updateReview(Integer id, ReviewCreateDto dto) {
+        Review review = reviewRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Review not found with ID: " + id));
+
+        review.setDate(dto.getDate());
+        review.setGrade(dto.getGrade());
+        review.setComment(dto.getComment());
+
+        return reviewMapper.toDto(reviewRepository.save(review));
     }
 
-    public Review updateReview(Long id, Review updatedReview) {
-        Review existingReview = getReviewById(id);
-        existingReview.setComment(updatedReview.getComment());
-        existingReview.setGrade(updatedReview.getGrade());
-        existingReview.setDate(updatedReview.getDate());
-        return reviewRepository.save(existingReview);
+    public List<ReviewDisplayDto> getReviewsByTeacherId(Integer teacherId) {
+        return reviewRepository.findByTeacherId(teacherId)
+                .stream()
+                .map(reviewMapper::toDto)
+                .collect(Collectors.toList());
     }
 
-    public void deleteReview(Long id) {
-        Review review = getReviewById(id);
-        reviewRepository.delete(review);
+    public List<ReviewDisplayDto> getReviewsByUserId(Integer userId) {
+        return reviewRepository.findByUserId(userId)
+                .stream()
+                .map(reviewMapper::toDto)
+                .collect(Collectors.toList());
     }
 }

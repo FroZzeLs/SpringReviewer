@@ -1,12 +1,15 @@
 package by.frozzel.springreviewer.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(name = "teacher")
+@Table(name = "teachers")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -14,11 +17,15 @@ import java.util.Set;
 public class Teacher {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
 
     private String surname;
     private String name;
     private String patronym;
+
+    @OneToMany(mappedBy = "teacher", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
+    private List<Review> reviews = new ArrayList<>(); // 🛠 Инициализируем пустым списком
 
     @ManyToMany
     @JoinTable(
@@ -26,5 +33,6 @@ public class Teacher {
             joinColumns = @JoinColumn(name = "teacher_id"),
             inverseJoinColumns = @JoinColumn(name = "subject_id")
     )
-    private Set<Subject> subjects;
+    @JsonManagedReference
+    private List<Subject> subjects = new ArrayList<>(); // 🛠 Инициализируем пустым списком
 }
