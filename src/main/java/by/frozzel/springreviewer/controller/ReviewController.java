@@ -2,7 +2,6 @@ package by.frozzel.springreviewer.controller;
 
 import by.frozzel.springreviewer.dto.ReviewCreateDto;
 import by.frozzel.springreviewer.dto.ReviewDisplayDto;
-import by.frozzel.springreviewer.model.Review;
 import by.frozzel.springreviewer.service.ReviewService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

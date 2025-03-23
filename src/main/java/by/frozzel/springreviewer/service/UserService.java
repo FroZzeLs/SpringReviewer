@@ -27,7 +27,7 @@ public class UserService {
     public List<UserDisplayDto> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(userMapper::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Optional<UserDisplayDto> getUserById(Integer id) {

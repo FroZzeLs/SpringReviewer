@@ -36,7 +36,7 @@ public class SubjectService {
     public List<SubjectDisplayDto> getAllSubjects() {
         return subjectRepository.findAll().stream()
                 .map(subjectMapper::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Optional<SubjectDisplayDto> getSubjectById(Integer id) {

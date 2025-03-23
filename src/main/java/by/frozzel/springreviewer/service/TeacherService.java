@@ -21,6 +21,8 @@ public class TeacherService {
     private final TeacherRepository teacherRepository;
     private final SubjectRepository subjectRepository;
     private final TeacherMapper teacherMapper;
+    private static final String TEACHER_NOT_FOUND_MESSAGE = "Teacher not found";
+    private static final String SUBJECT_NOT_FOUND_MESSAGE = "Subject not found";
 
     public List<TeacherDisplayDto> getAllTeachers() {
         return teacherRepository.findAll().stream()
@@ -30,7 +32,7 @@ public class TeacherService {
 
     public TeacherDisplayDto getTeacherById(Integer id) {
         Teacher teacher = teacherRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Teacher not found"));
+                .orElseThrow(() -> new RuntimeException(TEACHER_NOT_FOUND_MESSAGE));
         return teacherMapper.toDto(teacher);
     }
 
@@ -41,7 +43,7 @@ public class TeacherService {
 
     public TeacherDisplayDto updateTeacher(Integer id, TeacherCreateDto teacherCreateDto) {
         Teacher teacher = teacherRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Teacher not found"));
+                .orElseThrow(() -> new RuntimeException(TEACHER_NOT_FOUND_MESSAGE));
         teacher.setSurname(teacherCreateDto.getSurname());
         teacher.setName(teacherCreateDto.getName());
         teacher.setPatronym(teacherCreateDto.getPatronym());
@@ -54,17 +56,17 @@ public class TeacherService {
 
     public TeacherDisplayDto getTeacherByFullName(String surname, String name) {
         Teacher teacher = teacherRepository.findBySurnameAndName(surname, name)
-                .orElseThrow(() -> new RuntimeException("Teacher not found"));
+                .orElseThrow(() -> new RuntimeException(TEACHER_NOT_FOUND_MESSAGE));
         return teacherMapper.toDto(teacher);
     }
 
     @Transactional
     public void assignSubjectToTeacher(int teacherId, int subjectId) {
         Teacher teacher = teacherRepository.findById(teacherId)
-                .orElseThrow(() -> new EntityNotFoundException("Преподаватель не найден"));
+                .orElseThrow(() -> new EntityNotFoundException(TEACHER_NOT_FOUND_MESSAGE));
 
         Subject subject = subjectRepository.findById(subjectId)
-                .orElseThrow(() -> new EntityNotFoundException("Предмет не найден"));
+                .orElseThrow(() -> new EntityNotFoundException(SUBJECT_NOT_FOUND_MESSAGE));
 
         if (!teacher.getSubjects().contains(subject)) {
             teacher.getSubjects().add(subject);
@@ -75,10 +77,10 @@ public class TeacherService {
     @Transactional
     public void removeSubjectFromTeacher(int teacherId, int subjectId) {
         Teacher teacher = teacherRepository.findById(teacherId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Teacher not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, TEACHER_NOT_FOUND_MESSAGE));
 
         Subject subject = subjectRepository.findById(subjectId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Subject not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, SUBJECT_NOT_FOUND_MESSAGE));
 
         if (!teacher.getSubjects().contains(subject)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Teacher does not teach this subject");
