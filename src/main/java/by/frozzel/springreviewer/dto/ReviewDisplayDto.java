@@ -1,6 +1,5 @@
 package by.frozzel.springreviewer.dto;
 
-import by.frozzel.springreviewer.model.Teacher;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Data;
