@@ -8,7 +8,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class ReviewDisplayDto {
     private Integer id;
-    private String username;
+    private String author;
     private String teacherFullName;
     private String subjectName;
     private LocalDate date;

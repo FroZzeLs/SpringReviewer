@@ -77,13 +77,16 @@ public class TeacherService {
     @Transactional
     public void removeSubjectFromTeacher(int teacherId, int subjectId) {
         Teacher teacher = teacherRepository.findById(teacherId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, TEACHER_NOT_FOUND_MESSAGE));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        TEACHER_NOT_FOUND_MESSAGE));
 
         Subject subject = subjectRepository.findById(subjectId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, SUBJECT_NOT_FOUND_MESSAGE));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        SUBJECT_NOT_FOUND_MESSAGE));
 
         if (!teacher.getSubjects().contains(subject)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Teacher does not teach this subject");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Teacher does not teach this subject");
         }
 
         teacher.getSubjects().remove(subject);

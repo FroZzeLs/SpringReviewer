@@ -36,7 +36,7 @@ public class Teacher {
 
     @OneToMany(mappedBy = "teacher", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference
-    private List<Review> reviews = new ArrayList<>(); // 🛠 Инициализируем пустым списком
+    private List<Review> reviews = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(
@@ -45,5 +45,5 @@ public class Teacher {
             inverseJoinColumns = @JoinColumn(name = "subject_id")
     )
     @JsonManagedReference
-    private List<Subject> subjects = new ArrayList<>(); // 🛠 Инициализируем пустым списком
+    private List<Subject> subjects = new ArrayList<>();
 }

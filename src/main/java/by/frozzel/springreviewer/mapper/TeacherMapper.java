@@ -16,7 +16,7 @@ public class TeacherMapper {
         teacher.setSurname(dto.getSurname());
         teacher.setName(dto.getName());
         teacher.setPatronym(dto.getPatronym());
-        teacher.setSubjects(new ArrayList<>()); // 🛠 Инициализируем пустым списком
+        teacher.setSubjects(new ArrayList<>());
         return teacher;
     }
 
@@ -30,7 +30,7 @@ public class TeacherMapper {
                         ? teacher.getSubjects().stream()
                         .map(Subject::getName)
                         .collect(Collectors.toList())
-                        : new ArrayList<>()) // 🛠 Проверяем `null`, создаем пустой список
+                        : new ArrayList<>())
                 .build();
     }
 }

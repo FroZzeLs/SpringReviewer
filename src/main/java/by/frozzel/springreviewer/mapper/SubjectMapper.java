@@ -12,7 +12,7 @@ public class SubjectMapper {
     public Subject toEntity(SubjectCreateDto dto) {
         Subject subject = new Subject();
         subject.setName(dto.getName());
-        subject.setTeachers(Collections.emptyList()); // 👈 Инициализация пустым списком
+        subject.setTeachers(Collections.emptyList());
         return subject;
     }
 
@@ -25,7 +25,7 @@ public class SubjectMapper {
                         .map(teacher -> teacher.getSurname() + " " + teacher.getName() + " "
                                 + teacher.getPatronym())
                         .collect(Collectors.toList())
-                        : Collections.emptyList() // 👈 Обработка null
+                        : Collections.emptyList()
         );
     }
 }

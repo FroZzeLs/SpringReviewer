@@ -16,6 +16,6 @@ public class TeacherDisplayDto {
     private String patronym;
 
     @Builder.Default
-    private List<String> subjects = new ArrayList<>(); // 🛠 Гарантируем, что список не будет `null`
+    private List<String> subjects = new ArrayList<>();
 }
 

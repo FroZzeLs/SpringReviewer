@@ -7,11 +7,9 @@ import by.frozzel.springreviewer.model.Subject;
 import by.frozzel.springreviewer.model.Teacher;
 import by.frozzel.springreviewer.repository.ReviewRepository;
 import by.frozzel.springreviewer.repository.SubjectRepository;
+import by.frozzel.springreviewer.repository.TeacherRepository;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
-import by.frozzel.springreviewer.repository.TeacherRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -61,11 +59,13 @@ public class SubjectService {
     @Transactional
     public ResponseEntity<Void> deleteSubject(int subjectId) {
         if (subjectId <= 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Subject ID must be a positive number");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Subject ID must be a positive number");
         }
 
         Subject subject = subjectRepository.findById(subjectId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Subject not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Subject not found"));
 
         for (Teacher teacher : subject.getTeachers()) {
             teacher.getSubjects().remove(subject);
