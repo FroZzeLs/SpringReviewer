@@ -18,6 +18,7 @@ public class ReviewMapper {
     private final UserRepository userRepository;
     private final TeacherRepository teacherRepository;
     private final SubjectRepository subjectRepository;
+    private final TeacherMapper teacherMapper;
 
     public Review toEntity(ReviewCreateDto dto) {
         Review review = new Review();
@@ -43,8 +44,7 @@ public class ReviewMapper {
         return new ReviewDisplayDto(
                 review.getId(),
                 review.getUser().getUsername(),
-                review.getTeacher().getSurname() + " "
-                        + review.getTeacher().getName() + " " + review.getTeacher().getPatronym(),
+                teacherMapper.toDto(review.getTeacher()),
                 review.getSubject().getName(),
                 review.getDate(),
                 review.getGrade(),

@@ -1,5 +1,6 @@
 package by.frozzel.springreviewer.dto;
 
+import by.frozzel.springreviewer.model.Teacher;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,9 +10,10 @@ import lombok.Data;
 public class ReviewDisplayDto {
     private Integer id;
     private String author;
-    private String teacherFullName;
+    private TeacherDisplayDto teacher;
     private String subjectName;
     private LocalDate date;
     private Integer grade;
     private String comment;
 }
+
