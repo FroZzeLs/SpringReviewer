@@ -2,6 +2,7 @@ package by.frozzel.springreviewer.mapper;
 
 import by.frozzel.springreviewer.dto.ReviewCreateDto;
 import by.frozzel.springreviewer.dto.ReviewDisplayDto;
+import by.frozzel.springreviewer.dto.TeacherDisplayDto;
 import by.frozzel.springreviewer.model.Review;
 import by.frozzel.springreviewer.model.Subject;
 import by.frozzel.springreviewer.model.Teacher;
@@ -9,6 +10,7 @@ import by.frozzel.springreviewer.model.User;
 import by.frozzel.springreviewer.repository.SubjectRepository;
 import by.frozzel.springreviewer.repository.TeacherRepository;
 import by.frozzel.springreviewer.repository.UserRepository;
+import java.util.Objects; // Добавить импорт
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -27,11 +29,11 @@ public class ReviewMapper {
         review.setComment(dto.getComment());
 
         User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + dto.getUserId()));
         Teacher teacher = teacherRepository.findById(dto.getTeacherId())
-                .orElseThrow(() -> new RuntimeException("Teacher not found"));
+                .orElseThrow(() -> new RuntimeException("Teacher not found with ID: " + dto.getTeacherId()));
         Subject subject = subjectRepository.findById(dto.getSubjectId())
-                .orElseThrow(() -> new RuntimeException("Subject not found"));
+                .orElseThrow(() -> new RuntimeException("Subject not found with ID: " + dto.getSubjectId()));
 
         review.setUser(user);
         review.setTeacher(teacher);
@@ -41,11 +43,19 @@ public class ReviewMapper {
     }
 
     public ReviewDisplayDto toDto(Review review) {
+        if (review == null) {
+            return null;
+        }
+
+        String authorUsername = (review.getUser() != null) ? review.getUser().getUsername() : null;
+        TeacherDisplayDto teacherDto = (review.getTeacher() != null) ? teacherMapper.toDto(review.getTeacher()) : null;
+        String subjectName = (review.getSubject() != null) ? review.getSubject().getName() : null;
+
         return new ReviewDisplayDto(
                 review.getId(),
-                review.getUser().getUsername(),
-                teacherMapper.toDto(review.getTeacher()),
-                review.getSubject().getName(),
+                authorUsername,
+                teacherDto,
+                subjectName,
                 review.getDate(),
                 review.getGrade(),
                 review.getComment()

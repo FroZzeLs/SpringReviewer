@@ -5,6 +5,7 @@ import by.frozzel.springreviewer.dto.SubjectDisplayDto;
 import by.frozzel.springreviewer.service.SubjectService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -22,13 +24,14 @@ public class SubjectController {
     private final SubjectService subjectService;
 
     @PostMapping
-    public ResponseEntity<SubjectDisplayDto> createSubject(@RequestBody SubjectCreateDto dto) {
-        return ResponseEntity.ok(subjectService.createSubject(dto));
+    @ResponseStatus(HttpStatus.CREATED)
+    public SubjectDisplayDto createSubject(@RequestBody SubjectCreateDto dto) {
+        return subjectService.createSubject(dto);
     }
 
     @GetMapping
-    public ResponseEntity<List<SubjectDisplayDto>> getAllSubjects() {
-        return ResponseEntity.ok(subjectService.getAllSubjects());
+    public List<SubjectDisplayDto> getAllSubjects() {
+        return subjectService.getAllSubjects();
     }
 
     @GetMapping("/{id}")
@@ -54,7 +57,8 @@ public class SubjectController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSubject(@PathVariable Integer id) {
-        return subjectService.deleteSubject(id);
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteSubject(@PathVariable Integer id) {
+        subjectService.deleteSubject(id);
     }
 }
