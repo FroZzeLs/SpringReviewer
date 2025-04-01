@@ -43,16 +43,20 @@ public class ReviewService {
     @Transactional
     public ReviewDisplayDto saveReview(ReviewCreateDto dto) {
         userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "User not found"));
         Teacher teacher = teacherRepository.findById(dto.getTeacherId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Teacher not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Teacher not found"));
         subjectRepository.findById(dto.getSubjectId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Subject not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Subject not found"));
 
         boolean isTeaching = teacher.getSubjects().stream()
                 .anyMatch(s -> s.getId() == dto.getSubjectId());
         if (!isTeaching) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The teacher does not teach this subject");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "The teacher does not teach this subject");
         }
 
         Review review = reviewMapper.toEntity(dto);
@@ -194,7 +198,7 @@ public class ReviewService {
     public List<Object[]> getReviewCountsPerTeacher() {
         String cacheKey = generateCacheKey("reviewCountsPerTeacherNative");
         List<Object[]> cachedCounts = (List<Object[]>) lruCache.get(cacheKey);
-        if(cachedCounts != null) {
+        if (cachedCounts != null) {
             return cachedCounts;
         } else {
             List<Object[]> counts = reviewRepository.countReviewsPerTeacherNative();

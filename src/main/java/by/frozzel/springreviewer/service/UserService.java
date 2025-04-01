@@ -34,7 +34,8 @@ public class UserService {
     @Transactional
     public UserDisplayDto createUser(UserCreateDto dto) {
         if (userRepository.findByUsername(dto.getUsername()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already exists: " + dto.getUsername());
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Username already exists: " + dto.getUsername());
         }
         User user = userMapper.toEntity(dto);
         User savedUser = userRepository.save(user);
@@ -78,7 +79,8 @@ public class UserService {
         if (cachedUser != null) {
             return Optional.of(cachedUser);
         } else {
-            Optional<UserDisplayDto> userOpt = userRepository.findByUsername(username).map(userMapper::toDto);
+            Optional<UserDisplayDto> userOpt = userRepository
+                    .findByUsername(username).map(userMapper::toDto);
             userOpt.ifPresent(dto -> lruCache.put(cacheKey, dto));
             return userOpt;
         }
@@ -88,8 +90,10 @@ public class UserService {
     public Optional<UserDisplayDto> updateUser(Integer id, UserCreateDto dto) {
         return userRepository.findById(id)
                 .map(existingUser -> {
-                    if (!existingUser.getUsername().equals(dto.getUsername()) && userRepository.findByUsername(dto.getUsername()).isPresent()) {
-                        throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already exists: " + dto.getUsername());
+                    if (!existingUser.getUsername().equals(dto.getUsername())
+                            && userRepository.findByUsername(dto.getUsername()).isPresent()) {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                                "Username already exists: " + dto.getUsername());
                     }
                     existingUser.setUsername(dto.getUsername());
                     User updatedUser = userRepository.save(existingUser);

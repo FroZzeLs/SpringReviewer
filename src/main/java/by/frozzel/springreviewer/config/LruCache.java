@@ -21,7 +21,8 @@ public class LruCache<K, V> {
             protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
                 boolean shouldRemove = size() > LruCache.this.maxSize;
                 if (shouldRemove) {
-                    log.info("LRU Cache limit ({}) reached. Removing eldest (least recently used) entry with key: {}",
+                    log.info("LRU Cache limit ({}) reached. Removing eldest "
+                                    + "(least recently used) entry with key: {}",
                             LruCache.this.maxSize, eldest.getKey());
                 }
                 return shouldRemove;

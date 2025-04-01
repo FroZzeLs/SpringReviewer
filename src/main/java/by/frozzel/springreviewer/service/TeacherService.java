@@ -26,8 +26,10 @@ public class TeacherService {
     private final TeacherMapper teacherMapper;
     private final LruCache<String, Object> lruCache;
     private static final String TEACHER_NOT_FOUND_MESSAGE = "Teacher not found with ID: ";
-    private static final String TEACHER_BY_NAME_NOT_FOUND_MESSAGE = "Teacher not found with surname: %s and name: %s";
-    private static final String SUBJECT_NOT_FOUND_MESSAGE = "Subject not found with ID: ";
+    private static final String TEACHER_BY_NAME_NOT_FOUND_MESSAGE = "Teacher "
+           + "not found with surname: %s and name: %s";
+    private static final String SUBJECT_NOT_FOUND_MESSAGE = "Subject"
+           + " not found with ID: ";
 
     private String generateCacheKey(String prefix, Object... params) {
         StringBuilder keyBuilder = new StringBuilder(prefix);
@@ -62,7 +64,8 @@ public class TeacherService {
             return cachedTeacher;
         } else {
             Teacher teacher = teacherRepository.findById(id)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, TEACHER_NOT_FOUND_MESSAGE + id));
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            TEACHER_NOT_FOUND_MESSAGE + id));
             TeacherDisplayDto dto = teacherMapper.toDto(teacher);
             lruCache.put(cacheKey, dto);
             return dto;
@@ -80,7 +83,8 @@ public class TeacherService {
     @Transactional
     public TeacherDisplayDto updateTeacher(Integer id, TeacherCreateDto teacherCreateDto) {
         Teacher teacher = teacherRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, TEACHER_NOT_FOUND_MESSAGE + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        TEACHER_NOT_FOUND_MESSAGE + id));
         teacher.setSurname(teacherCreateDto.getSurname());
         teacher.setName(teacherCreateDto.getName());
         teacher.setPatronym(teacherCreateDto.getPatronym());
@@ -103,7 +107,7 @@ public class TeacherService {
     public TeacherDisplayDto getTeacherByFullName(String surname, String name) {
         String cacheKey = generateCacheKey("teacherByName", surname, name);
         TeacherDisplayDto cachedTeacher = (TeacherDisplayDto) lruCache.get(cacheKey);
-        if(cachedTeacher != null) {
+        if (cachedTeacher != null) {
             return cachedTeacher;
         } else {
             Teacher teacher = teacherRepository.findBySurnameAndName(surname, name)
