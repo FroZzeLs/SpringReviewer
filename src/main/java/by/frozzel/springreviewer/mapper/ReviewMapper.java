@@ -29,14 +29,14 @@ public class ReviewMapper {
         review.setComment(dto.getComment());
 
         User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new RuntimeException("User"
-                        + " not found with ID: " + dto.getUserId()));
+                .orElseThrow(() -> new RuntimeException("User not found with ID: "
+                        + dto.getUserId()));
         Teacher teacher = teacherRepository.findById(dto.getTeacherId())
-                .orElseThrow(() -> new RuntimeException("Teacher"
-                       + " not found with ID: " + dto.getTeacherId()));
+                .orElseThrow(() -> new RuntimeException("Teacher not found with ID: "
+                        + dto.getTeacherId()));
         Subject subject = subjectRepository.findById(dto.getSubjectId())
-                .orElseThrow(() -> new RuntimeException("Subject"
-                       + " not found with ID: " + dto.getSubjectId()));
+                .orElseThrow(() -> new RuntimeException("Subject not found with ID: "
+                        + dto.getSubjectId()));
 
         review.setUser(user);
         review.setTeacher(teacher);
