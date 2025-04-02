@@ -3,6 +3,7 @@ package by.frozzel.springreviewer.controller;
 import by.frozzel.springreviewer.dto.ReviewCreateDto;
 import by.frozzel.springreviewer.dto.ReviewDisplayDto;
 import by.frozzel.springreviewer.service.ReviewService;
+import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -68,5 +70,16 @@ public class ReviewController {
     @GetMapping("/stats/teacher-counts")
     public List<Object[]> getReviewCountsPerTeacher() {
         return reviewService.getReviewCountsPerTeacher();
+    }
+
+    @GetMapping("/search")
+    public List<ReviewDisplayDto> searchReviews(
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate,
+            @RequestParam(required = false) String teacherSurname,
+            @RequestParam(required = false) String subjectName,
+            @RequestParam(required = false) Integer minGrade) {
+        return reviewService.searchReviews(startDate,
+                endDate, teacherSurname, subjectName, minGrade);
     }
 }

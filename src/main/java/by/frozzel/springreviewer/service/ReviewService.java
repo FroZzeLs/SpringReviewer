@@ -60,6 +60,9 @@ public class ReviewService {
         }
 
         Review review = reviewMapper.toEntity(dto);
+        if (review.getDate() == null) {
+            review.setDate(LocalDate.now());
+        }
         Review savedReview = reviewRepository.save(review);
 
         lruCache.clear();
@@ -73,8 +76,10 @@ public class ReviewService {
         List<ReviewDisplayDto> cachedReviews = (List<ReviewDisplayDto>) lruCache.get(cacheKey);
 
         if (cachedReviews != null) {
+            log.debug("Cache HIT for key: {}", cacheKey);
             return cachedReviews;
         } else {
+            log.debug("Cache MISS for key: {}", cacheKey);
             List<ReviewDisplayDto> reviews = reviewRepository.findAll()
                     .stream()
                     .map(reviewMapper::toDto)
@@ -90,8 +95,10 @@ public class ReviewService {
         ReviewDisplayDto cachedReview = (ReviewDisplayDto) lruCache.get(cacheKey);
 
         if (cachedReview != null) {
+            log.debug("Cache HIT for key: {}", cacheKey);
             return cachedReview;
         } else {
+            log.debug("Cache MISS for key: {}", cacheKey);
             ReviewDisplayDto reviewDto = reviewRepository.findById(id)
                     .map(reviewMapper::toDto)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -105,7 +112,7 @@ public class ReviewService {
     public void deleteReview(Integer id) {
         if (reviewRepository.existsById(id)) {
             reviewRepository.deleteById(id);
-            lruCache.clear();
+            lruCache.clear(); // Очищаем кэш
         } else {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                     "Review not found with id: " + id);
@@ -118,9 +125,15 @@ public class ReviewService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Review not found with id: " + id));
 
-        review.setDate(dto.getDate());
-        review.setGrade(dto.getGrade());
-        review.setComment(dto.getComment());
+        if (dto.getDate() != null) {
+            review.setDate(dto.getDate());
+        }
+        if (dto.getGrade() != null) {
+            review.setGrade(dto.getGrade());
+        }
+        if (dto.getComment() != null) {
+            review.setComment(dto.getComment());
+        }
 
         Review updatedReview = reviewRepository.save(review);
         lruCache.clear();
@@ -134,13 +147,11 @@ public class ReviewService {
         List<ReviewDisplayDto> cachedReviews = (List<ReviewDisplayDto>) lruCache.get(cacheKey);
 
         if (cachedReviews != null) {
+            log.debug("Cache HIT for key: {}", cacheKey);
             return cachedReviews;
         } else {
+            log.debug("Cache MISS for key: {}", cacheKey);
             List<Review> reviews = reviewRepository.findByTeacherId(teacherId);
-            if (reviews.isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Reviews not found for teacherId: " + teacherId);
-            }
             List<ReviewDisplayDto> reviewDtos = reviews.stream()
                     .map(reviewMapper::toDto)
                     .toList();
@@ -156,13 +167,11 @@ public class ReviewService {
         List<ReviewDisplayDto> cachedReviews = (List<ReviewDisplayDto>) lruCache.get(cacheKey);
 
         if (cachedReviews != null) {
+            log.debug("Cache HIT for key: {}", cacheKey);
             return cachedReviews;
         } else {
+            log.debug("Cache MISS for key: {}", cacheKey);
             List<Review> reviews = reviewRepository.findByUserId(userId);
-            if (reviews.isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Reviews not found for userId: " + userId);
-            }
             List<ReviewDisplayDto> reviewDtos = reviews.stream()
                     .map(reviewMapper::toDto)
                     .toList();
@@ -178,13 +187,11 @@ public class ReviewService {
         List<ReviewDisplayDto> cachedReviews = (List<ReviewDisplayDto>) lruCache.get(cacheKey);
 
         if (cachedReviews != null) {
+            log.debug("Cache HIT for key: {}", cacheKey);
             return cachedReviews;
         } else {
+            log.debug("Cache MISS for key: {}", cacheKey);
             List<Review> reviews = reviewRepository.findByUserUsername(username);
-            if (reviews.isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Reviews not found for user: " + username);
-            }
             List<ReviewDisplayDto> reviewDtos = reviews.stream()
                     .map(reviewMapper::toDto)
                     .toList();
@@ -199,11 +206,33 @@ public class ReviewService {
         String cacheKey = generateCacheKey("reviewCountsPerTeacherNative");
         List<Object[]> cachedCounts = (List<Object[]>) lruCache.get(cacheKey);
         if (cachedCounts != null) {
+            log.debug("Cache HIT for key: {}", cacheKey);
             return cachedCounts;
         } else {
+            log.debug("Cache MISS for key: {}", cacheKey);
             List<Object[]> counts = reviewRepository.countReviewsPerTeacherNative();
             lruCache.put(cacheKey, counts);
             return counts;
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReviewDisplayDto> searchReviews(LocalDate startDate,
+                                                LocalDate endDate, String teacherSurname,
+                                                String subjectName, Integer minGrade) {
+        log.info("Searching reviews with criteria: startDate={}, endDate={},"
+                       + " teacherSurname='{}' (type: {}), subjectName='{}'"
+                       + " (type: {}), minGrade={}",
+                startDate, endDate,
+                teacherSurname, (teacherSurname != null
+                        ? teacherSurname.getClass().getName() : "null"),
+                subjectName, (subjectName != null ? subjectName.getClass().getName() : "null"),
+                minGrade);
+
+        List<Review> reviews = reviewRepository.searchReviews(startDate, endDate,
+                teacherSurname, subjectName, minGrade);
+        return reviews.stream()
+                .map(reviewMapper::toDto)
+                .collect(Collectors.toList());
     }
 }
