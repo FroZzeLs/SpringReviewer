@@ -22,12 +22,11 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
     @Query("DELETE FROM Review r WHERE r.subject.id = :subjectId")
     void deleteBySubjectId(@Param("subjectId") int subjectId);
 
-    @Query(value = "SELECT t.surname, COUNT(r.id) as review_count "
-            + "FROM reviews r JOIN teachers t ON r.teacher_id = t.id "
+    @Query("SELECT t.surname, COUNT(r) "
+            + "FROM Review r JOIN r.teacher t "
             + "GROUP BY t.id, t.surname "
-            + "ORDER BY review_count DESC",
-            nativeQuery = true)
-    List<Object[]> countReviewsPerTeacherNative();
+            + "ORDER BY COUNT(r) DESC")
+    List<Object[]> countReviewsPerTeacher();
 
     @Query(value = "SELECT r.* FROM reviews r "
            + "JOIN teachers t ON r.teacher_id = t.id "

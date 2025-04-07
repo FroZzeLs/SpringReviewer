@@ -10,11 +10,20 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class LruCache<K, V> {
+
     private final Map<K, V> cache;
     private final int maxSize;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
+    private static final String LOG_CACHE_HIT = "LRU Cache HIT for key: {}";
+    private static final String LOG_CACHE_MISS = "LRU Cache MISS for key: {}";
+    private static final String LOG_CACHE_PUT = "Putting data into LRU cache with key: {}";
+    private static final String LOG_CACHE_REMOVE = "Removing data from LRU cache with key: {}";
+
     public LruCache(int maxSize) {
+        if (maxSize <= 0) {
+            throw new IllegalArgumentException("Max size must be positive");
+        }
         this.maxSize = maxSize;
         this.cache = new LinkedHashMap<>(maxSize, 0.75f, true) {
             @Override
@@ -22,7 +31,7 @@ public class LruCache<K, V> {
                 boolean shouldRemove = size() > LruCache.this.maxSize;
                 if (shouldRemove) {
                     log.info("LRU Cache limit ({}) reached. Removing eldest "
-                                    + "(least recently used) entry with key: {}",
+                                   + "(least recently used) entry with key: {}",
                             LruCache.this.maxSize, eldest.getKey());
                 }
                 return shouldRemove;
@@ -32,24 +41,24 @@ public class LruCache<K, V> {
     }
 
     public V get(K key) {
-        lock.writeLock().lock();
+        lock.readLock().lock();
         try {
             V value = cache.get(key);
             if (value != null) {
-                log.info("LRU Cache HIT for key: {}", key);
+                log.info(LOG_CACHE_HIT, key);
             } else {
-                log.info("LRU Cache MISS for key: {}", key);
+                log.info(LOG_CACHE_MISS, key);
             }
             return value;
         } finally {
-            lock.writeLock().unlock();
+            lock.readLock().unlock();
         }
     }
 
     public void put(K key, V value) {
         lock.writeLock().lock();
         try {
-            log.info("Putting data into LRU cache with key: {}", key);
+            log.info(LOG_CACHE_PUT, key);
             cache.put(key, value);
         } finally {
             lock.writeLock().unlock();
@@ -59,18 +68,8 @@ public class LruCache<K, V> {
     public void remove(K key) {
         lock.writeLock().lock();
         try {
-            log.info("Removing data from LRU cache with key: {}", key);
+            log.info(LOG_CACHE_REMOVE, key);
             cache.remove(key);
-        } finally {
-            lock.writeLock().unlock();
-        }
-    }
-
-    public void clear() {
-        lock.writeLock().lock();
-        try {
-            log.warn("Clearing the entire LRU cache!");
-            cache.clear();
         } finally {
             lock.writeLock().unlock();
         }
@@ -80,15 +79,6 @@ public class LruCache<K, V> {
         lock.readLock().lock();
         try {
             return new ArrayList<>(cache.values());
-        } finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    public int size() {
-        lock.readLock().lock();
-        try {
-            return cache.size();
         } finally {
             lock.readLock().unlock();
         }
