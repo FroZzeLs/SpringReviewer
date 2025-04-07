@@ -51,6 +51,7 @@ public class ReviewService {
     private static final String LOG_CACHE_INVALIDATE = "Invalidated cache entry for key: {}";
     private static final String LOG_FETCH_DB = "Fetching data from repository for key: {}";
     private static final String LOG_REVIEW_NOT_FOUND = "Review not found with id: {}";
+    private static final String REVIEW_NOT_FOUND = "Review not found with id: {}";
 
     private String generateCacheKey(String prefix, Object... params) {
         StringBuilder keyBuilder = new StringBuilder(prefix);
@@ -180,7 +181,7 @@ public class ReviewService {
                     .orElseThrow(() -> {
                         log.warn(LOG_REVIEW_NOT_FOUND, id);
                         return new ResponseStatusException(HttpStatus.NOT_FOUND,
-                                "Review not found with id: " + id);
+                                REVIEW_NOT_FOUND + id);
                     });
             lruCache.put(cacheKey, reviewDto);
             log.debug(LOG_CACHE_PUT, cacheKey);
@@ -194,7 +195,7 @@ public class ReviewService {
                 .orElseThrow(() -> {
                     log.warn(LOG_REVIEW_NOT_FOUND, id);
                     return new ResponseStatusException(HttpStatus.NOT_FOUND,
-                            "Review not found with id: " + id);
+                            REVIEW_NOT_FOUND + id);
                 });
 
         reviewRepository.deleteById(id);
@@ -213,7 +214,7 @@ public class ReviewService {
                 .orElseThrow(() -> {
                     log.warn(LOG_REVIEW_NOT_FOUND, id);
                     return new ResponseStatusException(HttpStatus.NOT_FOUND,
-                            "Review not found with id: " + id);
+                            REVIEW_NOT_FOUND + id);
                 });
 
         boolean updated = false;
@@ -243,9 +244,10 @@ public class ReviewService {
             return updatedDto;
         } else {
             log.debug("Review with id {} was not modified.", id);
-            return getReviewById(id);
+            return reviewMapper.toDto(review);
         }
     }
+
 
     @Transactional(readOnly = true)
     @SuppressWarnings("unchecked")
