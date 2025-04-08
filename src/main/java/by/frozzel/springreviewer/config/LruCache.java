@@ -1,7 +1,5 @@
 package by.frozzel.springreviewer.config;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -72,15 +70,6 @@ public class LruCache<K, V> {
             cache.remove(key);
         } finally {
             lock.writeLock().unlock();
-        }
-    }
-
-    public Collection<V> getAll() {
-        lock.readLock().lock();
-        try {
-            return new ArrayList<>(cache.values());
-        } finally {
-            lock.readLock().unlock();
         }
     }
 }

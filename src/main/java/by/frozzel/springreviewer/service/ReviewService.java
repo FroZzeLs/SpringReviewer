@@ -144,7 +144,6 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    @SuppressWarnings("unchecked")
     public List<ReviewDisplayDto> getAllReviews() {
         List<ReviewDisplayDto> cachedReviews = (List<ReviewDisplayDto>) lruCache
                 .get(KEY_ALL_REVIEWS);
@@ -250,7 +249,6 @@ public class ReviewService {
 
 
     @Transactional(readOnly = true)
-    @SuppressWarnings("unchecked")
     public List<ReviewDisplayDto> getReviewsByTeacherId(Integer teacherId) {
         String cacheKey = generateCacheKey(KEY_PREFIX_REVIEWS_BY_TEACHER, teacherId);
         List<ReviewDisplayDto> cachedReviews = (List<ReviewDisplayDto>) lruCache.get(cacheKey);
@@ -272,7 +270,6 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    @SuppressWarnings("unchecked")
     public List<ReviewDisplayDto> getReviewsByUserId(Integer userId) {
         String cacheKey = generateCacheKey(KEY_PREFIX_REVIEWS_BY_USER_ID, userId);
         List<ReviewDisplayDto> cachedReviews = (List<ReviewDisplayDto>) lruCache.get(cacheKey);
@@ -294,7 +291,6 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    @SuppressWarnings("unchecked")
     public List<ReviewDisplayDto> getReviewsByUserUsername(String username) {
         String cacheKey = generateCacheKey(KEY_PREFIX_REVIEWS_BY_USERNAME, username);
         List<ReviewDisplayDto> cachedReviews = (List<ReviewDisplayDto>) lruCache.get(cacheKey);
@@ -316,7 +312,6 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    @SuppressWarnings("unchecked")
     public List<Object[]> getReviewCountsPerTeacher() {
         List<Object[]> cachedCounts = (List<Object[]>) lruCache.get(KEY_REVIEW_COUNTS);
         if (cachedCounts != null) {
@@ -333,7 +328,6 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    @SuppressWarnings("unchecked")
     public List<ReviewDisplayDto> searchReviews(LocalDate startDate,
                                                 LocalDate endDate, String teacherSurname,
                                                 String subjectName, Integer minGrade) {

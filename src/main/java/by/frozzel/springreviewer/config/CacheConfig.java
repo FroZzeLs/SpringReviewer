@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 public class CacheConfig {
 
-    @Value("${cache.maxSize:2}")
+    @Value("${cache.maxSize:50}")
     private int cacheMaxSize;
 
     @Bean
