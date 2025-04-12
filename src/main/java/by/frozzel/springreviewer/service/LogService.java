@@ -11,7 +11,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,7 +48,7 @@ public class LogService {
         try (Stream<String> lines = Files.lines(currentLogPath, StandardCharsets.UTF_8)) {
             List<String> filteredLogs = lines
                     .filter(line -> line.startsWith(datePrefix))
-                    .collect(Collectors.toList());
+                    .toList();
             log.info("Found {} log entries for date {}", filteredLogs.size(), datePrefix);
             return filteredLogs;
         } catch (NoSuchFileException e) {

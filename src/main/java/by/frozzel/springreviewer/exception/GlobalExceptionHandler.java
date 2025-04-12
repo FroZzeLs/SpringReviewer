@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -29,15 +28,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             HttpStatusCode status, WebRequest request) {
 
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", status.value());
-        body.put("error", "Validation Error");
+        body.put("timestamp ", LocalDateTime.now());
+        body.put("status ", status.value());
+        body.put("error ", "Validation Error");
 
         List<String> errors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
                 .map(FieldError::getDefaultMessage)
-                .collect(Collectors.toList());
+                .toList();
 
         body.put("messages", errors);
 
@@ -57,7 +56,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         List<String> errors = ex.getConstraintViolations()
                 .stream()
                 .map(ConstraintViolation::getMessage)
-                .collect(Collectors.toList());
+                .toList();
 
         body.put("messages", errors);
 
@@ -107,11 +106,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private ResponseEntity<Object> buildErrorResponse(
             Exception ex, String message, HttpStatus status, WebRequest request) {
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", status.value());
-        body.put("error", status.getReasonPhrase());
-        body.put("message", message);
-        body.put("path", request.getDescription(false).replace("uri=", ""));
+        body.put(" timestamp", LocalDateTime.now());
+        body.put(" status", status.value());
+        body.put(" error", status.getReasonPhrase());
+        body.put(" message", message);
+        body.put(" path", request.getDescription(false).replace("uri=", ""));
 
         if (status.is5xxServerError()) {
             log.error("Error processing request {} {}: {}", status.value(),
