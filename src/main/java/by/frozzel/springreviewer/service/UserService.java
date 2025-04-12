@@ -2,16 +2,16 @@ package by.frozzel.springreviewer.service;
 
 import by.frozzel.springreviewer.dto.UserCreateDto;
 import by.frozzel.springreviewer.dto.UserDisplayDto;
+import by.frozzel.springreviewer.exception.ConflictException;
+import by.frozzel.springreviewer.exception.ResourceNotFoundException;
 import by.frozzel.springreviewer.mapper.UserMapper;
 import by.frozzel.springreviewer.model.User;
 import by.frozzel.springreviewer.repository.UserRepository;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+
 
 @Service
 @RequiredArgsConstructor
@@ -19,11 +19,14 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
+    private static final String USER_RESOURCE = "User";
+    private static final String ID_FIELD = "id";
+    private static final String USERNAME_FIELD = "username";
+
     @Transactional
     public UserDisplayDto createUser(UserCreateDto dto) {
-        if (userRepository.findByUsername(dto.getUsername()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Username already exists: " + dto.getUsername());
+        if (userRepository.findByUsernameIgnoreCase(dto.getUsername()).isPresent()) {
+            throw new ConflictException("Username already exists: " + dto.getUsername());
         }
         User user = userMapper.toEntity(dto);
         User savedUser = userRepository.save(user);
@@ -38,39 +41,38 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<UserDisplayDto> getUserById(Integer id) {
+    public UserDisplayDto getUserById(Integer id) {
         return userRepository.findById(id)
-                .map(userMapper::toDto);
+                .map(userMapper::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException(USER_RESOURCE, ID_FIELD, id));
     }
 
     @Transactional(readOnly = true)
-    public Optional<UserDisplayDto> getUserByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .map(userMapper::toDto);
+    public UserDisplayDto getUserByUsername(String username) {
+        return userRepository.findByUsernameIgnoreCase(username)
+                .map(userMapper::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException(USER_RESOURCE,
+                        USERNAME_FIELD, username));
     }
 
     @Transactional
-    public Optional<UserDisplayDto> updateUser(Integer id, UserCreateDto dto) {
-        return userRepository.findById(id)
-                .map(existingUser -> {
-                    if (!existingUser.getUsername().equals(dto.getUsername())
-                            && userRepository.findByUsername(dto.getUsername()).isPresent()) {
-                        throw new ResponseStatusException(HttpStatus.CONFLICT,
-                                "Username already exists: " + dto.getUsername());
-                    }
-                    existingUser.setUsername(dto.getUsername());
-                    User updatedUser = userRepository.save(existingUser);
-                    return Optional.of(userMapper.toDto(updatedUser));
-                })
-                .orElse(Optional.empty());
-    }
+    public UserDisplayDto updateUser(Integer id, UserCreateDto dto) {
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(USER_RESOURCE, ID_FIELD, id));
 
-    @Transactional
-    public boolean deleteUser(Integer id) {
-        if (userRepository.existsById(id)) {
-            userRepository.deleteById(id);
-            return true;
+        if (!existingUser.getUsername().equals(dto.getUsername())
+                && userRepository.findByUsernameIgnoreCase(dto.getUsername()).isPresent()) {
+            throw new ConflictException("Username already exists: " + dto.getUsername());
         }
-        return false;
+        existingUser.setUsername(dto.getUsername());
+        User updatedUser = userRepository.save(existingUser);
+        return userMapper.toDto(updatedUser);
+    }
+
+    @Transactional
+    public void deleteUser(Integer id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(USER_RESOURCE, ID_FIELD, id));
+        userRepository.deleteById(id);
     }
 }

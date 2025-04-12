@@ -3,10 +3,13 @@ package by.frozzel.springreviewer.controller;
 import by.frozzel.springreviewer.dto.SubjectCreateDto;
 import by.frozzel.springreviewer.dto.SubjectDisplayDto;
 import by.frozzel.springreviewer.service.SubjectService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,12 +23,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/subjects")
 @RequiredArgsConstructor
+@Validated
 public class SubjectController {
     private final SubjectService subjectService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public SubjectDisplayDto createSubject(@RequestBody SubjectCreateDto dto) {
+    public SubjectDisplayDto createSubject(@Valid @RequestBody SubjectCreateDto dto) {
         return subjectService.createSubject(dto);
     }
 
@@ -35,30 +39,28 @@ public class SubjectController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SubjectDisplayDto> getSubjectById(@PathVariable Integer id) {
-        return subjectService.getSubjectById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public SubjectDisplayDto getSubjectById(@PathVariable @Min(value = 1,
+            message = "Subject ID must be positive") Integer id) {
+        return subjectService.getSubjectById(id);
     }
 
     @GetMapping("/name/{name}")
-    public ResponseEntity<SubjectDisplayDto> getSubjectByName(@PathVariable String name) {
-        return subjectService.getSubjectByName(name)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public SubjectDisplayDto getSubjectByName(
+            @PathVariable @NotBlank(message = "Subject name cannot be blank") String name) {
+        return subjectService.getSubjectByName(name);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<SubjectDisplayDto> updateSubject(@PathVariable Integer id,
-                                                           @RequestBody SubjectCreateDto dto) {
-        return subjectService.updateSubject(id, dto)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public SubjectDisplayDto updateSubject(
+            @PathVariable @Min(value = 1, message = "Subject ID must be positive") Integer id,
+                                           @Valid @RequestBody SubjectCreateDto dto) {
+        return subjectService.updateSubject(id, dto);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteSubject(@PathVariable Integer id) {
+    public void deleteSubject(@PathVariable @Min(value = 1,
+            message = "Subject ID must be positive") Integer id) {
         subjectService.deleteSubject(id);
     }
 }

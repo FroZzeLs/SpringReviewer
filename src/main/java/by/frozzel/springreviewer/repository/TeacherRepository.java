@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 
 public interface TeacherRepository extends JpaRepository<Teacher, Integer> {
-    Optional<Teacher> findBySurnameAndName(String surname, String name);
+    Optional<Teacher> findBySurnameAndNameIgnoreCase(String surname, String name);
 
     @Query("SELECT DISTINCT t FROM Teacher t JOIN t.subjects s WHERE"
            + " LOWER(s.name) = LOWER(:subjectName)")

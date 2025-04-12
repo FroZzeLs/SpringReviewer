@@ -15,7 +15,7 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
 
     List<Review> findByUserId(Integer userId);
 
-    List<Review> findByUserUsername(String username);
+    List<Review> findByUserUsernameIgnoreCase(String username);
 
     @Transactional
     @Modifying
@@ -28,16 +28,19 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
             + "ORDER BY COUNT(r) DESC")
     List<Object[]> countReviewsPerTeacher();
 
-    @Query(value = "SELECT r.* FROM reviews r "
-           + "JOIN teachers t ON r.teacher_id = t.id "
-           + "JOIN subjects s ON r.subject_id = s.id WHERE "
-           + " (CAST(:startDate AS DATE) IS NULL OR r.date >= CAST(:startDate AS DATE)) AND "
-           + " (CAST(:endDate AS DATE) IS NULL OR r.date <= CAST(:endDate AS DATE)) AND "
-           + " (CAST(:teacherSurname AS VARCHAR) IS NULL OR "
-           + "LOWER(t.surname) = LOWER(:teacherSurname)) AND "
-           + " (CAST(:subjectName AS VARCHAR) IS NULL OR LOWER(s.name) = LOWER(:subjectName)) AND "
-           + " (CAST(:minGrade AS INTEGER) IS NULL OR r.grade >= CAST(:minGrade AS INTEGER))",
-            nativeQuery = true)
+    @Query(value = """
+            SELECT r.* FROM reviews r
+            JOIN teachers t ON r.teacher_id = t.id
+            JOIN subjects s ON r.subject_id = s.id
+            WHERE
+                (CAST(:startDate AS DATE) IS NULL OR r.date >= CAST(:startDate AS DATE)) AND
+                (CAST(:endDate AS DATE) IS NULL OR r.date <= CAST(:endDate AS DATE)) AND
+                (CAST(:teacherSurname AS VARCHAR) IS NULL OR
+                LOWER(t.surname) LIKE LOWER(CONCAT('%', CAST(:teacherSurname AS VARCHAR), '%'))) AND
+                (CAST(:subjectName AS VARCHAR) IS NULL OR
+                LOWER(s.name) LIKE LOWER(CONCAT('%', CAST(:subjectName AS VARCHAR), '%'))) AND
+                (CAST(:minGrade AS INTEGER) IS NULL OR r.grade >= CAST(:minGrade AS INTEGER))
+            """, nativeQuery = true)
     List<Review> searchReviews(
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate,
