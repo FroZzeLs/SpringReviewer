@@ -1,5 +1,6 @@
 package by.frozzel.springreviewer.controller;
 
+import by.frozzel.springreviewer.exception.ResourceNotFoundException;
 import by.frozzel.springreviewer.service.LogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -37,7 +38,7 @@ public class LogController {
             description = "Возвращает список строковых представлений логов за указанную дату."
     )
     @ApiResponses(value = {
-        @ApiResponse(
+            @ApiResponse(
                     responseCode = "200",
                     description = "Логи успешно получены",
                     content = @Content(
@@ -45,17 +46,20 @@ public class LogController {
                             schema = @Schema(
                                     type = "array",
                                     implementation = String.class))),
-        @ApiResponse(
+            @ApiResponse(
                     responseCode = "400",
-                    description = "Неверный параметр запроса (дата не указана,"
-                            + " некорректный формат или дата в будущем)",
+                    description = "Неверный параметр запроса (дата не указана, некорректный формат или дата в будущем)",
+                    content = @Content),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "На указанную дату не найдено логов",
                     content = @Content)
     })
     public ResponseEntity<List<String>> getLogsByDate(
             @Parameter(
                     description = "Дата для фильтрации логов (в формате YYYY-MM-DD)",
                     required = true,
-                    example = "2024-03-15")
+                    example = "2025-04-15")
             @RequestParam
             @NotNull(message = "Date parameter is required")
             @PastOrPresent(message = "Date must be in the past or present")
@@ -63,6 +67,12 @@ public class LogController {
             LocalDate date) {
 
         List<String> logs = logService.getLogsForDate(date);
+
+        if (logs.isEmpty()) {
+            throw new ResourceNotFoundException("Logs", "date", date);
+        }
+
         return ResponseEntity.ok(logs);
     }
+
 }
