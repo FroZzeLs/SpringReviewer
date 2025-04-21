@@ -52,6 +52,19 @@ public class TeacherService {
     }
 
     @Transactional
+    public List<TeacherDisplayDto> createTeachersBulk(List<TeacherCreateDto> teacherCreateDtos) {
+        List<Teacher> teachersToSave = teacherCreateDtos.stream()
+                .map(teacherMapper::toEntity)
+                .toList();
+
+        List<Teacher> savedTeachers = teacherRepository.saveAll(teachersToSave);
+
+        return savedTeachers.stream()
+                .map(teacherMapper::toDto)
+                .toList();
+    }
+
+    @Transactional
     public TeacherDisplayDto updateTeacher(Integer id, TeacherCreateDto teacherCreateDto) {
         Teacher teacher = teacherRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(TEACHER_RESOURCE, ID_FIELD, id));
@@ -88,8 +101,13 @@ public class TeacherService {
                 .orElseThrow(() -> new ResourceNotFoundException(SUBJECT_RESOURCE,
                         ID_FIELD, subjectId));
 
-        if (teacher.getSubjects().add(subject)) {
+        boolean alreadyAssigned = teacher.getSubjects().stream()
+                .anyMatch(s -> s.getId() == subject.getId());
+
+        if (!alreadyAssigned) {
+            teacher.getSubjects().add(subject);
             teacherRepository.save(teacher);
+            log.info("Assigned subject {} to teacher {}", subjectId, teacherId);
         } else {
             log.info("Teacher {} already teaches subject {}", teacherId, subjectId);
         }

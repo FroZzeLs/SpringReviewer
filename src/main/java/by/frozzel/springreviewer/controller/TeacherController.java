@@ -120,6 +120,26 @@ public class TeacherController {
         return teacherService.createTeacher(teacherCreateDto);
     }
 
+    @PostMapping("/bulk")
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Создать несколько преподавателей (bulk операция)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Преподаватели успешно созданы",
+                    content = @Content(mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = TeacherDisplayDto.class)))),
+            @ApiResponse(responseCode = "400", description = "Некорректные данные в одном или нескольких объектах запроса (ошибка валидации)",
+                    content = @Content),
+            @ApiResponse(responseCode = "409", description = "Один или несколько преподавателей с таким ФИО уже существуют",
+                    content = @Content)
+    })
+    public List<TeacherDisplayDto> createTeachersBulk(
+            @RequestBody(description = "Список данных для создания новых преподавателей", required = true,
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = TeacherCreateDto.class))))
+            @Valid @org.springframework.web.bind.annotation.RequestBody List<TeacherCreateDto> teacherCreateDtos) {
+        return teacherService.createTeachersBulk(teacherCreateDtos);
+    }
+
+
     @PutMapping("/{id}")
     @Operation(summary = "Обновить данные существующего преподавателя")
     @ApiResponses(value = {
