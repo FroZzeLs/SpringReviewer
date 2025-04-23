@@ -41,7 +41,7 @@ public class LogService {
     private static final DateTimeFormatter LOG_DATE_FORMATTER = DateTimeFormatter
             .ofPattern("yyyy-MM-dd");
     private static final String LOG_RESOURCE = "Log file";
-    private static final long SIMULATED_DELAY_SECONDS = 20;
+    private static final long SIMULATED_DELAY_SECONDS = 5;
 
     @Autowired
     public LogService(@Value("${logging.file.name}") String logFileName,
