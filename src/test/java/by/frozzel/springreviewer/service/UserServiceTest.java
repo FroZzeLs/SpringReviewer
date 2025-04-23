@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import by.frozzel.springreviewer.dto.ReviewDisplayDto;
 import by.frozzel.springreviewer.dto.UserCreateDto;
 import by.frozzel.springreviewer.dto.UserDisplayDto;
 import by.frozzel.springreviewer.exception.ConflictException;
