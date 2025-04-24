@@ -1,4 +1,3 @@
-// src/features/users/UserForm.jsx
 import React, { useEffect } from 'react';
 import { Modal, Form, Input, Button } from 'antd';
 
@@ -23,7 +22,6 @@ const UserForm = ({ visible, onCreate, onUpdate, onCancel, editingUser }) => {
         } else {
           onCreate(values);
         }
-        // form.resetFields(); // Сброс можно делать в родительском компоненте после успешного запроса
       })
       .catch((info) => {
         console.log('Validate Failed:', info);
@@ -38,7 +36,7 @@ const UserForm = ({ visible, onCreate, onUpdate, onCancel, editingUser }) => {
       cancelText="Отмена"
       onCancel={onCancel}
       onOk={handleOk}
-      destroyOnClose // Уничтожать дочерние элементы при закрытии (сбрасывает состояние формы)
+      destroyOnClose
     >
       <Form form={form} layout="vertical" name="user_form">
         <Form.Item

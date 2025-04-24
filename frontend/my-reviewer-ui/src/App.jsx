@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react
 import { Layout, Menu, ConfigProvider, theme, Typography, Breadcrumb } from 'antd';
 import { HomeOutlined, MessageOutlined, TeamOutlined, BookOutlined, UserOutlined } from '@ant-design/icons';
 import ruRU from 'antd/locale/ru_RU';
-import HomePage from './features/home/HomePage'; // Убедитесь, что путь верный
+import HomePage from './features/home/HomePage';
 import UserList from './features/users/UserList';
 import TeacherList from './features/teachers/TeacherList';
 import SubjectList from './features/subjects/SubjectList';

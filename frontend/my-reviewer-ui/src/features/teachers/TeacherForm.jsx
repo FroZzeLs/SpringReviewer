@@ -1,4 +1,3 @@
-// src/features/teachers/TeacherForm.jsx
 import React, { useEffect, useState } from 'react';
 import { Modal, Form, Input, Button, Select, Spin, message } from 'antd';
 import * as api from '../../api';
@@ -9,27 +8,26 @@ const TeacherForm = ({ visible, onCreate, onUpdate, onCancel, editingTeacher }) 
   const [form] = Form.useForm();
   const [subjects, setSubjects] = useState([]);
   const [loadingSubjects, setLoadingSubjects] = useState(false);
-  const [messageApi, contextHolder] = message.useMessage(); // Для локальных сообщений об ошибках
+  const [messageApi, contextHolder] = message.useMessage();
   const isEditing = !!editingTeacher;
 
-  // Загрузка списка предметов для MultiSelect
   useEffect(() => {
     const fetchSubjects = async () => {
       setLoadingSubjects(true);
       try {
         const response = await api.getSubjects();
-        setSubjects(response.data); // Ожидаем массив { id: number, name: string, teacherNames: string[] }
+        setSubjects(response.data);
       } catch (error) {
          console.error("Failed to fetch subjects:", error);
-         messageApi.error('Не удалось загрузить список предметов'); // Используем локальный messageApi
+         messageApi.error('Не удалось загрузить список предметов');
       } finally {
         setLoadingSubjects(false);
       }
     };
-    if (visible) { // Загружаем только когда модальное окно видимо
+    if (visible) {
          fetchSubjects();
     }
-  }, [visible, messageApi]); // Добавили messageApi в зависимости
+  }, [visible, messageApi]);
 
   // Заполнение формы при редактировании
   useEffect(() => {

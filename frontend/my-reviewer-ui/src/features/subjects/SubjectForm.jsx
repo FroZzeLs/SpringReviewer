@@ -1,4 +1,3 @@
-// src/features/subjects/SubjectForm.jsx
 import React, { useEffect } from 'react';
 import { Modal, Form, Input, Button } from 'antd';
 

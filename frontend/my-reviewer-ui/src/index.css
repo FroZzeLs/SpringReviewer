@@ -1,5 +1,4 @@
-/* src/index.css */
-@import 'antd/dist/reset.css'; /* Сброс стилей Ant Design */
+@import 'antd/dist/reset.css';
 
 body {
   margin: 0;
@@ -8,7 +7,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f0f2f5; /* Светлый фон для контраста */
+  background-color: #f0f2f5;
 }
 
 code {
@@ -16,31 +15,25 @@ code {
     monospace;
 }
 
-/* Настройка основного синего цвета Ant Design (можно выбрать другой оттенок) */
 :root {
-  --ant-primary-color: #1677ff; /* Стандартный синий AntD */
-  /* Или другой синий: #0052cc, #1d39c4, #2f54eb */
+  --ant-primary-color: #1677ff;
 }
 
-/* Переопределение через CSS переменные AntD v5+ */
 body {
-  --ant-primary-color: #1677ff; /* Пример синего */
+  --ant-primary-color: #1677ff;
   --ant-primary-color-hover: #4096ff;
   --ant-primary-color-active: #0958d9;
 }
 
-/* Стили для контейнера приложения */
 .app-container {
   padding: 24px;
   min-height: 100vh;
 }
 
-/* Отступы между элементами списков */
 .list-item-margin {
   margin-bottom: 16px !important;
 }
 
-/* Стили для заголовков секций */
 .section-title {
   margin-bottom: 20px !important;
   color: var(--ant-primary-color);
@@ -48,13 +41,11 @@ body {
   padding-bottom: 10px;
 }
 
-/* Выравнивание кнопок действий */
 .action-buttons {
     display: flex;
-    gap: 8px; /* Пространство между кнопками */
+    gap: 8px;
 }
 
-/* Стили для вложенных списков */
 .nested-list {
     margin-left: 20px;
     margin-top: 8px;

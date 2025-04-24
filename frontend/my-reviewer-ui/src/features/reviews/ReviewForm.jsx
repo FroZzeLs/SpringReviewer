@@ -167,7 +167,7 @@ const ReviewForm = ({ visible, onCreate, onUpdate, onCancel, editingReview }) =>
               <Form.Item
                   name="comment"
                   label="Комментарий"
-                  rules={[{ max: 5000, message: 'Максимум 5000 символов' }]}
+                  rules={[{ required: true, max: 5000, message: 'Максимум 5000 символов' }]}
               >
                 <TextArea rows={4} placeholder="Ваш комментарий..." disabled={loading} />
               </Form.Item>

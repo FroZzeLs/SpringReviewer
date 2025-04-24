@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-// Добавляем Tag в импорт
 import { Row, Col, Card, Typography, Spin, Button, message, DatePicker, Alert, Progress, Table, Space, Tag } from 'antd';
 import { TeamOutlined, BookOutlined, UserOutlined, PlusOutlined, FileTextOutlined, LoadingOutlined, CheckCircleOutlined, CloseCircleOutlined, DownloadOutlined, BarChartOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -151,7 +150,7 @@ const HomePage = () => {
 
             <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
                 <Col xs={24} lg={16}>
-                    {/* Заменяем bordered={false} на variant="borderless" */}
+                    {}
                     <Card title="Генерация файла логов" variant="borderless" extra={<FileTextOutlined />}>
                         <Row gutter={16} align="bottom">
                             <Col flex="auto">
@@ -211,7 +210,7 @@ const HomePage = () => {
                     </Card>
                 </Col>
                 <Col xs={24} lg={8}>
-                    {/* Заменяем bordered={false} на variant="borderless" */}
+                    {}
                     <Card title="Быстрые действия" variant="borderless">
                         <Space direction="vertical" style={{ width: '100%' }}>
                             <Button type="primary" icon={<PlusOutlined />} block onClick={() => navigate('/reviews')}>
