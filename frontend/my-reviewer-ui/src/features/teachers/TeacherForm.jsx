@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Modal, Form, Input, Button, Select, Spin, message } from 'antd';
 import * as api from '../../api';
 
 const { Option } = Select;
+
+const nameRegex = /^[А-ЯЁA-Z][а-яёa-z]+(?:-[А-ЯЁA-Z][а-яёa-z]+)?$/;
+const nameMessage = 'Должно начинаться с заглавной буквы, содержать только буквы и один необязательный дефис для двойных имен/фамилий (напр., Анна-Мария)';
 
 const TeacherForm = ({ visible, onCreate, onUpdate, onCancel, editingTeacher }) => {
   const [form] = Form.useForm();
@@ -11,47 +14,49 @@ const TeacherForm = ({ visible, onCreate, onUpdate, onCancel, editingTeacher }) 
   const [messageApi, contextHolder] = message.useMessage();
   const isEditing = !!editingTeacher;
 
-  useEffect(() => {
-    const fetchSubjects = async () => {
-      setLoadingSubjects(true);
-      try {
-        const response = await api.getSubjects();
-        setSubjects(response.data);
-      } catch (error) {
-         console.error("Failed to fetch subjects:", error);
-         messageApi.error('Не удалось загрузить список предметов');
-      } finally {
-        setLoadingSubjects(false);
-      }
-    };
-    if (visible) {
-         fetchSubjects();
+  const fetchSubjects = useCallback(async () => {
+    setLoadingSubjects(true);
+    try {
+      const response = await api.getSubjects();
+      setSubjects(response.data);
+    } catch (error) {
+      console.error("Failed to fetch subjects:", error);
+      messageApi.error('Не удалось загрузить список предметов');
+    } finally {
+      setLoadingSubjects(false);
     }
-  }, [visible, messageApi]);
+  }, [messageApi]);
 
-  // Заполнение формы при редактировании
+
   useEffect(() => {
-    if (visible && isEditing && subjects.length > 0) { // Убедимся что предметы загружены
-      // Находим ID предметов по их именам, которые есть у редактируемого учителя
-       const teacherSubjectIds = editingTeacher.subjects
-         .map(subjName => {
-             const found = subjects.find(s => s.name === subjName);
-             return found ? found.id : null; // Возвращаем ID или null если не найден
-         })
-         .filter(id => id !== null); // Отфильтровываем null
+    if (visible) {
+      fetchSubjects();
 
-      form.setFieldsValue({
-        surname: editingTeacher.surname,
-        name: editingTeacher.name,
-        patronym: editingTeacher.patronym,
-        subjectIds: teacherSubjectIds, // Используем ID для Select
-      });
-    } else if (visible && !isEditing) {
+      if (isEditing && editingTeacher) {
+        form.setFieldsValue({
+          surname: editingTeacher.surname,
+          name: editingTeacher.name,
+          patronym: editingTeacher.patronym,
+        });
+      } else {
+        form.resetFields();
+      }
+    } else {
       form.resetFields();
     }
-  }, [editingTeacher, form, isEditing, visible, subjects]); // Добавили subjects
+  }, [visible, editingTeacher, isEditing, form, fetchSubjects]);
 
-  const handleOk = async () => {
+  useEffect(() => {
+    if (visible && isEditing && editingTeacher && subjects.length > 0) {
+      const teacherSubjectIds = editingTeacher.subjects
+          .map(subjName => subjects.find(s => s.name === subjName)?.id)
+          .filter(id => id !== null);
+      form.setFieldsValue({ subjectIds: teacherSubjectIds });
+    }
+  }, [visible, isEditing, editingTeacher, subjects, form]);
+
+
+  const handleOk = useCallback(async () => {
     try {
       const values = await form.validateFields();
       const teacherData = {
@@ -59,7 +64,7 @@ const TeacherForm = ({ visible, onCreate, onUpdate, onCancel, editingTeacher }) 
         name: values.name,
         patronym: values.patronym,
       };
-      const selectedSubjectIds = values.subjectIds || []; // ID выбранных предметов
+      const selectedSubjectIds = values.subjectIds || [];
 
       if (isEditing) {
         await onUpdate(editingTeacher.id, teacherData, selectedSubjectIds);
@@ -68,78 +73,108 @@ const TeacherForm = ({ visible, onCreate, onUpdate, onCancel, editingTeacher }) 
       }
     } catch (info) {
       if (info.errorFields) {
-          console.log('Validate Failed:', info);
+        console.log('Validate Failed:', info);
+        if (info.errorFields.length > 0) {
+          form.scrollToField(info.errorFields[0].name[0]);
+        }
       } else {
-          // Ошибка пришла из onCreate/onUpdate (например, API error)
-          // Она должна обрабатываться там и показывать сообщение
-          console.error('Submit failed:', info);
+        console.error('Submit failed:', info);
       }
     }
-  };
+  }, [form, isEditing, editingTeacher, subjects, onCreate, onUpdate]);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (visible && (event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+        event.preventDefault();
+        handleOk();
+      }
+    };
+
+    if (visible) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [visible, handleOk]);
 
 
   return (
-    <>
-    {contextHolder}
-    <Modal
-      open={visible}
-      title={isEditing ? 'Редактировать преподавателя' : 'Добавить преподавателя'}
-      okText={isEditing ? 'Сохранить' : 'Создать'}
-      cancelText="Отмена"
-      onCancel={onCancel}
-      onOk={handleOk} // Вызываем handleOk по клику OK
-      confirmLoading={loadingSubjects} // Можно добавить общий лоадер на время сабмита
-      destroyOnClose
-      width={600} // Увеличим ширину для Select
-    >
-      <Spin spinning={loadingSubjects} tip="Загрузка предметов...">
-          <Form form={form} layout="vertical" name="teacher_form">
-            <Form.Item
-              name="surname"
-              label="Фамилия"
-              rules={[{ required: true, message: 'Пожалуйста, введите фамилию!' }, { max: 50 }]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              name="name"
-              label="Имя"
-              rules={[{ required: true, message: 'Пожалуйста, введите имя!' }, { max: 50 }]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              name="patronym"
-              label="Отчество"
-              rules={[{ max: 50 }]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              name="subjectIds"
-              label="Предметы"
-            >
-              <Select
-                mode="multiple"
-                allowClear
-                style={{ width: '100%' }}
-                placeholder="Выберите предметы"
-                loading={loadingSubjects}
-                filterOption={(input, option) =>
-                    option.children.toLowerCase().includes(input.toLowerCase())
-                }
+      <>
+        {contextHolder}
+        <Modal
+            open={visible}
+            title={isEditing ? 'Редактировать преподавателя' : 'Добавить преподавателя'}
+            okText={isEditing ? 'Сохранить' : 'Создать'}
+            cancelText="Отмена"
+            onCancel={onCancel}
+            onOk={handleOk}
+            confirmLoading={loadingSubjects}
+            destroyOnClose
+            width={600}
+            maskClosable={false}
+        >
+          <Spin spinning={loadingSubjects} tip="Загрузка предметов...">
+            <Form form={form} layout="vertical" name="teacher_form" autoComplete="off">
+              <Form.Item
+                  name="surname"
+                  label="Фамилия"
+                  rules={[
+                    { required: true, message: 'Пожалуйста, введите фамилию!' },
+                    { max: 30, message: 'Максимум 30 символов' },
+                    { pattern: nameRegex, message: nameMessage }
+                  ]}
               >
-                {subjects.map(subject => (
-                  <Option key={subject.id} value={subject.id}>
-                    {subject.name}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Form>
-      </Spin>
-    </Modal>
-    </>
+                <Input maxLength={30} />
+              </Form.Item>
+              <Form.Item
+                  name="name"
+                  label="Имя"
+                  rules={[
+                    { required: true, message: 'Пожалуйста, введите имя!' },
+                    { max: 30, message: 'Максимум 30 символов' },
+                    { pattern: nameRegex, message: nameMessage }
+                  ]}
+              >
+                <Input maxLength={30}/>
+              </Form.Item>
+              <Form.Item
+                  name="patronym"
+                  label="Отчество"
+                  rules={[
+                    { max: 30, message: 'Максимум 30 символов' },
+                    { pattern: nameRegex, message: nameMessage }
+                  ]}
+              >
+                <Input maxLength={30}/>
+              </Form.Item>
+              <Form.Item
+                  name="subjectIds"
+                  label="Предметы"
+              >
+                <Select
+                    mode="multiple"
+                    allowClear
+                    style={{ width: '100%' }}
+                    placeholder="Выберите предметы"
+                    loading={loadingSubjects}
+                    filterOption={(input, option) =>
+                        (option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+                    }
+                >
+                  {subjects.map(subject => (
+                      <Option key={subject.id} value={subject.id}>
+                        {subject.name}
+                      </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Form>
+          </Spin>
+        </Modal>
+      </>
   );
 };
 

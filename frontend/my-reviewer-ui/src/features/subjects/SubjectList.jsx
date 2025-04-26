@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { List, Button, Typography, Spin, Popconfirm, message, Tag, Input, Space } from 'antd';
-import { BookOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { List, Button, Typography, Spin, Popconfirm, message, Tag, Input, Space, Row, Col } from 'antd';
+import { BookOutlined, PlusOutlined, EditOutlined, DeleteOutlined, SortAscendingOutlined, SortDescendingOutlined } from '@ant-design/icons';
 import * as api from '../../api';
 import SubjectForm from './SubjectForm';
 
@@ -14,15 +14,20 @@ const SubjectList = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingSubject, setEditingSubject] = useState(null);
     const [searchText, setSearchText] = useState('');
+    const [sortOrder, setSortOrder] = useState('asc');
     const [messageApi, contextHolder] = message.useMessage();
 
     const fetchSubjects = useCallback(async () => {
         setLoading(true);
         try {
             const response = await api.getSubjects();
-            setAllSubjects(response.data);
-            setFilteredSubjects(response.data);
+            const sortedData = response.data.slice().sort((a, b) =>
+                a.name.localeCompare(b.name)
+            );
+            setAllSubjects(sortedData);
+            setFilteredSubjects(sortedData);
             setSearchText('');
+            setSortOrder('asc');
         } catch (error) {
             api.handleApiError(error, messageApi);
         } finally {
@@ -36,14 +41,29 @@ const SubjectList = () => {
 
     useEffect(() => {
         const lowercasedFilter = searchText.toLowerCase();
-        const filteredData = allSubjects.filter((item) =>
+        let filteredData = allSubjects.filter((item) =>
             item.name.toLowerCase().includes(lowercasedFilter)
         );
+
+        filteredData.sort((a, b) => {
+            const nameA = a.name || '';
+            const nameB = b.name || '';
+            if (sortOrder === 'asc') {
+                return nameA.localeCompare(nameB);
+            } else {
+                return nameB.localeCompare(nameA);
+            }
+        });
+
         setFilteredSubjects(filteredData);
-    }, [searchText, allSubjects]);
+    }, [searchText, allSubjects, sortOrder]);
 
     const handleSearch = (value) => {
         setSearchText(value);
+    };
+
+    const handleSortToggle = () => {
+        setSortOrder(prevOrder => (prevOrder === 'asc' ? 'desc' : 'asc'));
     };
 
     const handleAdd = () => {
@@ -94,19 +114,31 @@ const SubjectList = () => {
         setEditingSubject(null);
     };
 
+    const SortIcon = sortOrder === 'asc' ? SortAscendingOutlined : SortDescendingOutlined;
+    const sortButtonText = sortOrder === 'asc' ? 'Сорт. А-Я' : 'Сорт. Я-А';
+
     return (
         <div className="list-container">
             {contextHolder}
             <Title level={4} className="section-title">Предметы</Title>
             <Space direction="vertical" style={{ width: '100%', marginBottom: 16 }}>
-                <Search
-                    placeholder="Поиск по названию предмета"
-                    allowClear
-                    enterButton="Найти"
-                    value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
-                    onSearch={handleSearch}
-                />
+                <Row gutter={16} wrap={false}>
+                    <Col flex="auto">
+                        <Search
+                            placeholder="Поиск по названию предмета"
+                            allowClear
+                            enterButton="Найти"
+                            value={searchText}
+                            onChange={(e) => setSearchText(e.target.value)}
+                            onSearch={handleSearch}
+                        />
+                    </Col>
+                    <Col flex="none">
+                        <Button icon={<SortIcon />} onClick={handleSortToggle}>
+                            {sortButtonText}
+                        </Button>
+                    </Col>
+                </Row>
                 <Button
                     type="primary"
                     icon={<PlusOutlined />}
@@ -121,6 +153,7 @@ const SubjectList = () => {
                     dataSource={filteredSubjects}
                     renderItem={(subject) => (
                         <List.Item
+                            key={subject.id} // Добавлен ключ
                             className="list-item-margin"
                             actions={[
                                 <Button type="link" icon={<EditOutlined />} onClick={() => handleEdit(subject)}>Редактировать</Button>,

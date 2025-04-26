@@ -1,59 +1,53 @@
-version: '3.8' # Используем более современную версию спецификации
+version: '3.8'
 
 services:
-  # Сервис базы данных PostgreSQL
   postgres:
-    image: 'postgres:16-alpine' # Рекомендуется указывать конкретную мажорную версию
+    image: 'postgres:16-alpine'
     container_name: 'spring-reviewer-db-local'
     ports:
-      - "5432:5432" # Проброс порта для возможного подключения извне (например, через DBeaver)
+      - "5432:5432"
     environment:
       POSTGRES_USER: "frozzel"
       POSTGRES_PASSWORD: "12345"
       POSTGRES_DB: "reviewers"
-        # POSTGRES_HOST_AUTH_METHOD: "trust" # 'trust' НЕ рекомендуется для чего-либо кроме тестов. Убрано.
-      # Пароль будет использоваться.
     volumes:
-      - postgres_data:/var/lib/postgresql/data # Сохранение данных БД между запусками
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U frozzel -d reviewers"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Сервис Бэкенда (Spring Boot)
   backend:
     build:
-      context: . # Контекст сборки - корневая папка репозитория
-      dockerfile: Dockerfile.backend # Имя Dockerfile для бэкенда
+      context: .
+      dockerfile: Dockerfile.backend
     container_name: 'spring-reviewer-backend-local'
     ports:
-      - "8080:8080" # Проброс порта Spring Boot приложения
+      - "8080:8080"
     environment:
-      # Переменные для application-prod.properties
       SPRING_PROFILES_ACTIVE: prod
-      # Подключение к сервису postgres в этой же сети Docker Compose
       DATABASE_URL: jdbc:postgresql://postgres:5432/reviewers
       DATABASE_USER: frozzel
       DATABASE_PASSWORD: 12345
-      # Можно добавить другие переменные окружения, если они нужны вашему приложению
+      # Убеждаемся, что эта строка точно есть и без опечаток
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
     depends_on:
       postgres:
-        condition: service_healthy # Ждать, пока postgres не будет готов принимать соединения
+        condition: service_healthy
 
-  # Сервис Фронтенда (React + Nginx)
   frontend:
     build:
-      context: ./frontend/my-reviewer-ui # Контекст сборки - папка фронтенда
-      dockerfile: Dockerfile.frontend # Имя Dockerfile для фронтенда
+      context: ./frontend/my-reviewer-ui
+      dockerfile: Dockerfile.frontend
     container_name: 'spring-reviewer-frontend-local'
     ports:
-      - "3000:80" # Пробрасываем порт Nginx (80) на порт 3000 хоста
+      - "5173:80"
     environment:
-      # Переменная для nginx.conf, указывающая на бэкенд-сервис в Docker сети
-      BACKEND_URL: http://backend:8080 # Используем имя сервиса 'backend' и его порт 8080
+      # Убеждаемся, что эта переменная задана
+      BACKEND_URL: http://backend:8080
     depends_on:
-      - backend # Запускать после бэкенда (хотя Nginx сам справится, если бэкенд временно недоступен)
+      - backend
 
 volumes:
-  postgres_data: # Именованный volume для данных PostgreSQL
+  postgres_data:

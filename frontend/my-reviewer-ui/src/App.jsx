@@ -8,6 +8,7 @@ import UserList from './features/users/UserList';
 import TeacherList from './features/teachers/TeacherList';
 import SubjectList from './features/subjects/SubjectList';
 import ReviewList from './features/reviews/ReviewList';
+import { RatingProvider } from './context/RatingContext'; // Импортируем провайдер
 import './index.css';
 
 const { Header, Content, Footer } = Layout;
@@ -100,36 +101,39 @@ function App() {
             token: { colorPrimary: '#1677ff' },
           }}
       >
-        <Layout style={{ minHeight: '100vh' }}>
-          <Header style={{ display: 'flex', alignItems: 'center', padding: '0 24px', backgroundColor: token.colorPrimary }}>
-            <Title level={3} style={{ color: 'white', margin: 0, marginRight: 'auto' }}>Spring Reviewer</Title>
-            <Menu
-                theme="dark"
-                mode="horizontal"
-                selectedKeys={[getSelectedKey()]}
-                items={menuItems}
-                style={{ flex: 1, minWidth: 0, justifyContent: 'flex-end', backgroundColor: token.colorPrimary }}
-            />
-          </Header>
-          <Content style={{ padding: '0 24px' }}>
-            <AppBreadcrumb />
-            <div style={{ background: '#fff', padding: 24, minHeight: 280, borderRadius: '8px' }}>
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/users" element={<UsersPage />} />
-                <Route path="/users/:userId/reviews" element={<UserReviewsPage />} />
-                <Route path="/teachers" element={<TeachersPage />} />
-                <Route path="/teachers/:teacherId/reviews" element={<TeacherReviewsPage />} />
-                <Route path="/subjects" element={<SubjectsPage />} />
-                <Route path="/reviews" element={<AllReviewsPage />} />
-                <Route path="*" element={<Title level={3}>404 - Страница не найдена</Title>} />
-              </Routes>
-            </div>
-          </Content>
-          <Footer style={{ textAlign: 'center', backgroundColor: '#f0f2f5' }}>
-            Spring Reviewer UI ©{new Date().getFullYear()} Created with Ant Design & React Router
-          </Footer>
-        </Layout>
+        {}
+        <RatingProvider>
+          <Layout style={{ minHeight: '100vh' }}>
+            <Header style={{ display: 'flex', alignItems: 'center', padding: '0 24px', backgroundColor: token.colorPrimary }}>
+              <Title level={3} style={{ color: 'white', margin: 0, marginRight: 'auto' }}>Spring Reviewer</Title>
+              <Menu
+                  theme="dark"
+                  mode="horizontal"
+                  selectedKeys={[getSelectedKey()]}
+                  items={menuItems}
+                  style={{ flex: 1, minWidth: 0, justifyContent: 'flex-end', backgroundColor: token.colorPrimary }}
+              />
+            </Header>
+            <Content style={{ padding: '0 24px' }}>
+              <AppBreadcrumb />
+              <div style={{ background: '#fff', padding: 24, minHeight: 280, borderRadius: '8px' }}>
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/users" element={<UsersPage />} />
+                  <Route path="/users/:userId/reviews" element={<UserReviewsPage />} />
+                  <Route path="/teachers" element={<TeachersPage />} />
+                  <Route path="/teachers/:teacherId/reviews" element={<TeacherReviewsPage />} />
+                  <Route path="/subjects" element={<SubjectsPage />} />
+                  <Route path="/reviews" element={<AllReviewsPage />} />
+                  <Route path="*" element={<Title level={3}>404 - Страница не найдена</Title>} />
+                </Routes>
+              </div>
+            </Content>
+            <Footer style={{ textAlign: 'center', backgroundColor: '#f0f2f5' }}>
+              Spring Reviewer UI ©{new Date().getFullYear()} Created with Ant Design & React Router
+            </Footer>
+          </Layout>
+        </RatingProvider>
       </ConfigProvider>
   );
 }

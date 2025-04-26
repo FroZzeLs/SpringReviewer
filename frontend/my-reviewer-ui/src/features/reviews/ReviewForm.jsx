@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Modal, Form, Select, Input, Button, DatePicker, InputNumber, Spin, message } from 'antd';
+import React, { useEffect, useState, useCallback } from 'react';
+import { Modal, Form, Select, Input, Button, DatePicker, Spin, message } from 'antd';
 import dayjs from 'dayjs';
 import * as api from '../../api';
 
@@ -14,54 +14,59 @@ const ReviewForm = ({ visible, onCreate, onUpdate, onCancel, editingReview }) =>
   const [loading, setLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const isEditing = !!editingReview;
+  const [gradeInputValue, setGradeInputValue] = useState('');
 
-  useEffect(() => {
-    const loadFormData = async () => {
-      if (!visible) return;
-      setLoading(true);
-      try {
-        const [usersRes, teachersRes, subjectsRes] = await Promise.all([
-          api.getUsers(),
-          api.getTeachers(),
-          api.getSubjects(),
-        ]);
-        setUsers(usersRes.data);
-        setTeachers(teachersRes.data);
-        setSubjects(subjectsRes.data);
-      } catch (error) {
-        console.error("Failed to load data for review form:", error);
-        messageApi.error('Не удалось загрузить данные для формы отзыва.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadFormData();
-  }, [visible, messageApi]);
-
-  useEffect(() => {
-    if (visible && isEditing) {
-      if (editingReview.authorId === undefined || editingReview.subjectId === undefined) {
-        console.error("Editing review is missing authorId or subjectId:", editingReview);
-        messageApi.error("Ошибка загрузки данных для редактирования.");
-        form.resetFields();
-        return;
-      }
-      form.setFieldsValue({
-        userId: editingReview.authorId,
-        teacherId: editingReview.teacher?.id,
-        subjectId: editingReview.subjectId,
-        date: editingReview.date ? dayjs(editingReview.date, 'YYYY-MM-DD') : null,
-        grade: editingReview.grade,
-        comment: editingReview.comment,
-      });
-    } else if (visible && !isEditing) {
-      form.resetFields();
-      form.setFieldsValue({ date: dayjs() });
+  const loadSelectData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [usersRes, teachersRes, subjectsRes] = await Promise.all([
+        api.getUsers(),
+        api.getTeachers(),
+        api.getSubjects(),
+      ]);
+      setUsers(usersRes.data);
+      setTeachers(teachersRes.data);
+      setSubjects(subjectsRes.data);
+    } catch (error) {
+      console.error("Failed to load data for review form:", error);
+      messageApi.error('Не удалось загрузить данные для формы отзыва.');
+    } finally {
+      setLoading(false);
     }
-  }, [editingReview, form, isEditing, visible, messageApi]);
+  }, [messageApi]);
 
+  useEffect(() => {
+    if (visible) {
+      loadSelectData();
+      if (isEditing) {
+        if (editingReview.authorId === undefined || editingReview.subjectId === undefined) {
+          console.error("Editing review is missing authorId or subjectId:", editingReview);
+          messageApi.error("Ошибка загрузки данных для редактирования.");
+          form.resetFields();
+          setGradeInputValue('');
+          return;
+        }
+        form.setFieldsValue({
+          userId: editingReview.authorId,
+          teacherId: editingReview.teacher?.id,
+          subjectId: editingReview.subjectId,
+          date: editingReview.date ? dayjs(editingReview.date, 'YYYY-MM-DD') : null,
+          grade: editingReview.grade,
+          comment: editingReview.comment,
+        });
+        setGradeInputValue(editingReview.grade !== null && editingReview.grade !== undefined ? String(editingReview.grade) : '');
+      } else {
+        form.resetFields();
+        setGradeInputValue('');
+        form.setFieldsValue({ date: dayjs() });
+      }
+    } else {
+      form.resetFields();
+      setGradeInputValue('');
+    }
+  }, [visible, editingReview, isEditing, form, messageApi, loadSelectData]);
 
-  const handleOk = () => {
+  const handleOk = useCallback(() => {
     form
         .validateFields()
         .then((values) => {
@@ -73,13 +78,47 @@ const ReviewForm = ({ visible, onCreate, onUpdate, onCancel, editingReview }) =>
         })
         .catch((info) => {
           console.log('Validate Failed:', info);
+          // Find first error field and focus it
+          if (info.errorFields && info.errorFields.length > 0) {
+            const errorFieldName = info.errorFields[0].name[0];
+            form.scrollToField(errorFieldName);
+          }
         });
-  };
+  }, [form, isEditing, editingReview, onCreate, onUpdate]);
 
-  const getTeacherFullName = (teacher) => {
+  const getTeacherFullName = useCallback((teacher) => {
     if (!teacher) return '';
     return `${teacher.surname} ${teacher.name} ${teacher.patronym || ''}`.trim();
-  }
+  }, []);
+
+  const handleGradeInputChange = (event) => {
+    const rawValue = event.target.value;
+    setGradeInputValue(rawValue);
+
+    const digits = rawValue.replace(/[^\d]/g, '');
+    const numericValue = digits === '' ? null : parseInt(digits, 10);
+
+    form.setFieldsValue({ grade: numericValue });
+    form.validateFields(['grade']);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (visible && (event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+        event.preventDefault();
+        handleOk();
+      }
+    };
+
+    if (visible) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [visible, handleOk]);
+
 
   return (
       <>
@@ -94,9 +133,10 @@ const ReviewForm = ({ visible, onCreate, onUpdate, onCancel, editingReview }) =>
             confirmLoading={loading}
             destroyOnClose
             width={700}
+            maskClosable={false}
         >
           <Spin spinning={loading} tip="Загрузка данных...">
-            <Form form={form} layout="vertical" name="review_form">
+            <Form form={form} layout="vertical" name="review_form" autoComplete="off">
               <Form.Item
                   name="userId"
                   label="Автор (Пользователь)"
@@ -159,15 +199,40 @@ const ReviewForm = ({ visible, onCreate, onUpdate, onCancel, editingReview }) =>
               <Form.Item
                   name="grade"
                   label="Оценка (1-10)"
-                  rules={[{ required: true, message: 'Укажите оценку!' }]}
+                  rules={[
+                    { required: true, message: 'Укажите оценку!' },
+                    {
+                      validator: async (_, value) => {
+                        if (value === null || value === undefined) {
+                          return Promise.resolve();
+                        }
+                        const numValue = Number(value);
+                        if (isNaN(numValue)) {
+                          return Promise.reject(new Error('Введите число!'));
+                        }
+                        if (numValue < 1 || numValue > 10) {
+                          return Promise.reject(new Error('Оценка должна быть от 1 до 10!'));
+                        }
+                        return Promise.resolve();
+                      }
+                    }
+                  ]}
+                  validateTrigger="onChange"
               >
-                <InputNumber min={1} max={10} style={{ width: '100%' }} placeholder="От 1 до 10" disabled={loading} />
+                <Input
+                    style={{ width: '100%' }}
+                    placeholder="От 1 до 10"
+                    disabled={loading}
+                    value={gradeInputValue}
+                    onChange={handleGradeInputChange}
+                    maxLength={2}
+                />
               </Form.Item>
 
               <Form.Item
                   name="comment"
                   label="Комментарий"
-                  rules={[{ required: true, max: 5000, message: 'Максимум 5000 символов' }]}
+                  rules={[{ max: 5000, message: 'Максимум 5000 символов' }]}
               >
                 <TextArea rows={4} placeholder="Ваш комментарий..." disabled={loading} />
               </Form.Item>
