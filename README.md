@@ -13,7 +13,7 @@
 ## 🛠 Используемые технологии  
 - **Backend**: Spring Boot  
 - **Database**: PostgreSQL  
-- **Frontend**: React *(наверное??? 🤔)*  
+- **Frontend**: React  
 - **API**: RESTful API  
 
 ## 📊 Анализ кода с SonarCloud  
