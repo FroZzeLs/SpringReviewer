@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Modal, Form, Select, Input, Button, DatePicker, Spin, message } from 'antd';
 import dayjs from 'dayjs';
 import * as api from '../../api';
@@ -9,12 +9,13 @@ const { TextArea } = Input;
 const ReviewForm = ({ visible, onCreate, onUpdate, onCancel, editingReview }) => {
   const [form] = Form.useForm();
   const [users, setUsers] = useState([]);
-  const [teachers, setTeachers] = useState([]);
-  const [subjects, setSubjects] = useState([]);
+  const [allTeachers, setAllTeachers] = useState([]);
+  const [allSubjects, setAllSubjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const isEditing = !!editingReview;
   const [gradeInputValue, setGradeInputValue] = useState('');
+  const [selectedTeacherIdValue, setSelectedTeacherIdValue] = useState(null);
 
   const loadSelectData = useCallback(async () => {
     setLoading(true);
@@ -25,8 +26,8 @@ const ReviewForm = ({ visible, onCreate, onUpdate, onCancel, editingReview }) =>
         api.getSubjects(),
       ]);
       setUsers(usersRes.data);
-      setTeachers(teachersRes.data);
-      setSubjects(subjectsRes.data);
+      setAllTeachers(teachersRes.data);
+      setAllSubjects(subjectsRes.data);
     } catch (error) {
       console.error("Failed to load data for review form:", error);
       messageApi.error('Не удалось загрузить данные для формы отзыва.');
@@ -38,31 +39,36 @@ const ReviewForm = ({ visible, onCreate, onUpdate, onCancel, editingReview }) =>
   useEffect(() => {
     if (visible) {
       loadSelectData();
-      if (isEditing) {
+      if (isEditing && editingReview) {
         if (editingReview.authorId === undefined || editingReview.subjectId === undefined) {
           console.error("Editing review is missing authorId or subjectId:", editingReview);
           messageApi.error("Ошибка загрузки данных для редактирования.");
           form.resetFields();
           setGradeInputValue('');
+          setSelectedTeacherIdValue(null);
           return;
         }
+        const currentTeacherId = editingReview.teacher?.id;
         form.setFieldsValue({
           userId: editingReview.authorId,
-          teacherId: editingReview.teacher?.id,
+          teacherId: currentTeacherId,
           subjectId: editingReview.subjectId,
           date: editingReview.date ? dayjs(editingReview.date, 'YYYY-MM-DD') : null,
           grade: editingReview.grade,
           comment: editingReview.comment,
         });
         setGradeInputValue(editingReview.grade !== null && editingReview.grade !== undefined ? String(editingReview.grade) : '');
+        setSelectedTeacherIdValue(currentTeacherId); // Установить для фильтрации предметов
       } else {
         form.resetFields();
         setGradeInputValue('');
+        setSelectedTeacherIdValue(null);
         form.setFieldsValue({ date: dayjs() });
       }
     } else {
       form.resetFields();
       setGradeInputValue('');
+      setSelectedTeacherIdValue(null);
     }
   }, [visible, editingReview, isEditing, form, messageApi, loadSelectData]);
 
@@ -78,7 +84,6 @@ const ReviewForm = ({ visible, onCreate, onUpdate, onCancel, editingReview }) =>
         })
         .catch((info) => {
           console.log('Validate Failed:', info);
-          // Find first error field and focus it
           if (info.errorFields && info.errorFields.length > 0) {
             const errorFieldName = info.errorFields[0].name[0];
             form.scrollToField(errorFieldName);
@@ -94,13 +99,28 @@ const ReviewForm = ({ visible, onCreate, onUpdate, onCancel, editingReview }) =>
   const handleGradeInputChange = (event) => {
     const rawValue = event.target.value;
     setGradeInputValue(rawValue);
-
     const digits = rawValue.replace(/[^\d]/g, '');
     const numericValue = digits === '' ? null : parseInt(digits, 10);
-
     form.setFieldsValue({ grade: numericValue });
     form.validateFields(['grade']);
   };
+
+  const handleTeacherChange = (teacherId) => {
+    setSelectedTeacherIdValue(teacherId);
+    form.setFieldsValue({ subjectId: null }); // Сбросить выбранный предмет
+  };
+
+  const availableSubjects = useMemo(() => {
+    if (!selectedTeacherIdValue) {
+      return allSubjects; // Показываем все, если преподаватель не выбран
+    }
+    const selectedTeacher = allTeachers.find(t => t.id === selectedTeacherIdValue);
+    if (!selectedTeacher || !selectedTeacher.subjects) {
+      return []; // Нет данных о преподавателе или его предметах
+    }
+    const teacherSubjectNames = selectedTeacher.subjects;
+    return allSubjects.filter(subject => teacherSubjectNames.includes(subject.name));
+  }, [selectedTeacherIdValue, allTeachers, allSubjects]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -113,7 +133,6 @@ const ReviewForm = ({ visible, onCreate, onUpdate, onCancel, editingReview }) =>
     if (visible) {
       window.addEventListener('keydown', handleKeyDown);
     }
-
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
@@ -126,7 +145,7 @@ const ReviewForm = ({ visible, onCreate, onUpdate, onCancel, editingReview }) =>
         <Modal
             open={visible}
             title={isEditing ? 'Редактировать отзыв' : 'Добавить отзыв'}
-            okText={isEditing ? 'Сохранить' : 'Создать'}
+            okText={isEditing ? 'Сохранить (Ctrl+Enter)' : 'Создать (Ctrl+Enter)'}
             cancelText="Отмена"
             onCancel={onCancel}
             onOk={handleOk}
@@ -164,8 +183,9 @@ const ReviewForm = ({ visible, onCreate, onUpdate, onCancel, editingReview }) =>
                     showSearch
                     filterOption={(input, option) => (option?.children ?? '').toLowerCase().includes(input.toLowerCase())}
                     disabled={loading}
+                    onChange={handleTeacherChange}
                 >
-                  {teachers.map(teacher => (
+                  {allTeachers.map(teacher => (
                       <Option key={teacher.id} value={teacher.id}>{getTeacherFullName(teacher)}</Option>
                   ))}
                 </Select>
@@ -174,15 +194,37 @@ const ReviewForm = ({ visible, onCreate, onUpdate, onCancel, editingReview }) =>
               <Form.Item
                   name="subjectId"
                   label="Предмет"
-                  rules={[{ required: true, message: 'Выберите предмет!' }]}
+                  rules={[
+                    { required: true, message: 'Выберите предмет!' },
+                    // Дополнительный валидатор, чтобы убедиться, что предмет ведется выбранным преподавателем
+                    // (на случай, если список доступных предметов не успел обновиться или есть ошибка)
+                    ({ getFieldValue }) => ({
+                      validator(_, value) {
+                        const teacherId = getFieldValue('teacherId');
+                        if (!teacherId || !value) {
+                          return Promise.resolve(); // Нет преподавателя или предмета - пропускаем
+                        }
+                        const selectedTeacher = allTeachers.find(t => t.id === teacherId);
+                        const subject = allSubjects.find(s => s.id === value);
+                        if (selectedTeacher && subject && selectedTeacher.subjects?.includes(subject.name)) {
+                          return Promise.resolve();
+                        }
+                        if(availableSubjects.length === 0 && !loading) {
+                          return Promise.reject(new Error('У выбранного преподавателя нет назначенных предметов!'));
+                        }
+                        return Promise.reject(new Error('Этот предмет не ведется выбранным преподавателем!'));
+                      },
+                    }),
+                  ]}
+                  dependencies={['teacherId']} // Перепроверять при изменении teacherId
               >
                 <Select
-                    placeholder="Выберите предмет"
+                    placeholder={selectedTeacherIdValue ? "Выберите предмет преподавателя" : "Сначала выберите преподавателя"}
                     showSearch
                     filterOption={(input, option) => (option?.children ?? '').toLowerCase().includes(input.toLowerCase())}
-                    disabled={loading}
+                    disabled={loading || !selectedTeacherIdValue} // Блокируем, пока не выбран преподаватель
                 >
-                  {subjects.map(subject => (
+                  {availableSubjects.map(subject => (
                       <Option key={subject.id} value={subject.id}>{subject.name}</Option>
                   ))}
                 </Select>
@@ -232,7 +274,7 @@ const ReviewForm = ({ visible, onCreate, onUpdate, onCancel, editingReview }) =>
               <Form.Item
                   name="comment"
                   label="Комментарий"
-                  rules={[{ max: 5000, message: 'Максимум 5000 символов' }]}
+                  rules={[{ max: 254, message: 'Максимум 255 символов' }]}
               >
                 <TextArea rows={4} placeholder="Ваш комментарий..." disabled={loading} />
               </Form.Item>

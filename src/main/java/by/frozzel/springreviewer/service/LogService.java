@@ -1,7 +1,6 @@
 package by.frozzel.springreviewer.service;
 
 import by.frozzel.springreviewer.exception.ResourceNotFoundException;
-import by.frozzel.springreviewer.model.LogGenerationTask;
 import by.frozzel.springreviewer.model.enums.LogGenerationStatus;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -41,7 +40,7 @@ public class LogService {
     private static final DateTimeFormatter LOG_DATE_FORMATTER = DateTimeFormatter
             .ofPattern("yyyy-MM-dd");
     private static final String LOG_RESOURCE = "Log file";
-    private static final long SIMULATED_DELAY_SECONDS = 5;
+    private static final long SIMULATED_DELAY_SECONDS = 20;
 
     @Autowired
     public LogService(@Value("${logging.file.name}") String logFileName,
@@ -162,14 +161,5 @@ public class LogService {
         }
 
         return logPathToRead;
-    }
-
-    public Path getGeneratedLogPath(String taskId) {
-        LogGenerationTask task = taskRegistry.getTask(taskId);
-        if (task.getStatus() != LogGenerationStatus.COMPLETED || task.getResultPath() == null) {
-            log.warn("Generated log file requested for task {}, but it's not completed or path is missing. Status: {}", taskId, task.getStatus());
-            throw new ResourceNotFoundException("Generated Log File", "taskId", taskId + " (status: " + task.getStatus() + ")");
-        }
-        return task.getResultPath();
     }
 }

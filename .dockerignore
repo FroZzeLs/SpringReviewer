@@ -1,34 +1,41 @@
-.git
-.gitignore
+# /home/frozzel/IdeaProjects/SpringReviewer/.dockerignore
 
+# Исключаем всю папку фронтенда из контекста сборки бэкенда!
+frontend/
+
+# Стандартные исключения для Java/Maven/Gradle
 target/
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-pom.xml.next
-release.properties
-dependency-reduced-pom.xml
-buildNumber.properties
+.mvn/
+build/
+out/
 
+# IDE & OS файлы
 .idea/
 *.iml
-*.ipr
-*.iws
+.vscode/
+.settings/
 .classpath
 .project
-.settings/
+*~
+.DS_Store
 
+# Git
+.git/
+.gitignore
+
+# Файлы Docker/Compose/Env из самого контекста
+Dockerfile
+docker-compose.yml
+.env
+
+# Логи и временные файлы
 logs/
 *.log
-generated-logs/
+tmp/
 
-frontend/my-reviewer-ui/node_modules/
-frontend/my-reviewer-ui/build/
-frontend/my-reviewer-ui/dist/
-frontend/my-reviewer-ui/.env*
-frontend/my-reviewer-ui/npm-debug.log*
-frontend/my-reviewer-ui/yarn-debug.log*
-frontend/my-reviewer-ui/yarn-error.log*
-
-.DS_Store
-Thumbs.db
+# Исполняемые файлы Maven/Gradle Wrapper (если они не нужны в образе)
+mvnw
+mvnw.cmd
+gradlew
+gradlew.bat
+.gradle/

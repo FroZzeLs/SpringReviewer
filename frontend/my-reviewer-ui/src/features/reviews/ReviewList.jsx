@@ -23,7 +23,7 @@ const SORT_ORDER = {
 };
 
 const PAGE_SIZE = 6;
-const PAGINATION_DELAY = 200;
+const PAGINATION_DELAY = 400;
 
 
 const ReviewList = ({ mode = 'all', title }) => {

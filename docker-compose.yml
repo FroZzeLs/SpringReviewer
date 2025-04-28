@@ -1,53 +1,69 @@
-version: '3.8'
-
 services:
-  postgres:
-    image: 'postgres:16-alpine'
-    container_name: 'spring-reviewer-db-local'
-    ports:
-      - "5432:5432"
+  db:
+    image: postgres:${POSTGRES_VERSION:-15-alpine}
+    container_name: myapp_postgres_db
     environment:
-      POSTGRES_USER: "frozzel"
-      POSTGRES_PASSWORD: "12345"
-      POSTGRES_DB: "reviewers"
+      # Эти переменные берутся из .env и используются для инициализации контейнера БД
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    ports:
+      # Проброс порта 5432 контейнера на порт DB_PORT хоста (из .env)
+      - "${DB_PORT:-5432}:5432"
+    networks:
+      - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U frozzel -d reviewers"]
+      # Проверка использует пользователя и БД из .env
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
+    restart: unless-stopped
 
   backend:
     build:
       context: .
-      dockerfile: Dockerfile.backend
-    container_name: 'spring-reviewer-backend-local'
-    ports:
-      - "8080:8080"
-    environment:
-      SPRING_PROFILES_ACTIVE: prod
-      DATABASE_URL: jdbc:postgresql://postgres:5432/reviewers
-      DATABASE_USER: frozzel
-      DATABASE_PASSWORD: 12345
-      # Убеждаемся, что эта строка точно есть и без опечаток
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      dockerfile: Dockerfile
+    container_name: myapp_backend
     depends_on:
-      postgres:
+      db:
         condition: service_healthy
+    environment:
+      # --- Вот КЛЮЧЕВЫЕ строки для Spring Boot ---
+      # URL использует имя сервиса 'db', порт 5432 и имя БД из .env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
+      # Имя пользователя берется из .env
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      # Пароль берется из .env
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      # --- Остальные переменные Spring ---
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update # или ваша стратегия
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    networks:
+      - app-network
+    restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend/my-reviewer-ui
-      dockerfile: Dockerfile.frontend
-    container_name: 'spring-reviewer-frontend-local'
-    ports:
-      - "5173:80"
-    environment:
-      # Убеждаемся, что эта переменная задана
-      BACKEND_URL: http://backend:8080
+      dockerfile: Dockerfile
+    container_name: myapp_frontend
     depends_on:
       - backend
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   postgres_data:
+    driver: local
