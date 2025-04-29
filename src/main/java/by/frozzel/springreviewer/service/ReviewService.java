@@ -76,7 +76,7 @@ public class ReviewService {
         return reviewRepository.findById(id)
                 .map(reviewMapper::toDto)
                 .orElseThrow(() -> {
-                    log.warn("Review not found with id: {}", id);
+                    log.warn("Review not found  with id: {}", id);
                     return new ResourceNotFoundException(REVIEW_RESOURCE, ID_FIELD, id);
                 });
     }
@@ -85,7 +85,7 @@ public class ReviewService {
     public void deleteReview(Integer id) {
         reviewRepository.findById(id)
                 .orElseThrow(() -> {
-                    log.warn("Review not found with id: {}", id);
+                    log.warn("Review  not found with id: {}", id);
                     return new ResourceNotFoundException(REVIEW_RESOURCE, ID_FIELD, id);
                 });
 
@@ -97,7 +97,7 @@ public class ReviewService {
     public ReviewDisplayDto updateReview(Integer id, ReviewCreateDto dto) {
         Review review = reviewRepository.findById(id)
                 .orElseThrow(() -> {
-                    log.warn("Review not found with id: {}", id);
+                    log.warn(" Review not found with id: {}", id);
                     return new ResourceNotFoundException(REVIEW_RESOURCE, ID_FIELD, id);
                 });
 

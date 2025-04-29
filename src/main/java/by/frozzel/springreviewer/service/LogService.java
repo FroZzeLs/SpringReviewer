@@ -11,8 +11,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.TimeUnit;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +21,6 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-@NoArgsConstructor(force = true)
 public class LogService {
 
     @Getter
@@ -32,9 +29,6 @@ public class LogService {
     private final Path generatedLogsDir;
     private final LogGenerationTaskRegistry taskRegistry;
 
-    @Autowired
-    @Lazy
-    @Setter
     private LogService self;
 
     private static final DateTimeFormatter LOG_DATE_FORMATTER = DateTimeFormatter
@@ -42,11 +36,11 @@ public class LogService {
     private static final String LOG_RESOURCE = "Log file";
     private static final long SIMULATED_DELAY_SECONDS = 3;
 
-    @Autowired
     public LogService(@Value("${logging.file.name}") String logFileName,
                       @Value("${generated.logs.dir:./generated-logs}") String generatedLogsDirPath,
                       LogGenerationTaskRegistry taskRegistry) {
         this.taskRegistry = taskRegistry;
+
         Path path = Paths.get(logFileName).toAbsolutePath();
         this.logFilePathString = path.toString();
         Path parentDir = path.getParent();
@@ -71,11 +65,18 @@ public class LogService {
         log.info("Archived log file pattern: {}", this.logFilePattern);
     }
 
+    @Autowired
+    @Lazy
+    public void setSelf(LogService self) {
+        this.self = self;
+    }
+
+
     public void initiateLogGeneration(String taskId, LocalDate date) {
         log.info("Initiating log generation for task ID {} via self-proxy.", taskId);
         if (self == null) {
-            log.error("Self-proxy (@Lazy LogService) is null! Async call will likely fail.");
-            throw new IllegalStateException("Self-proxy for LogService was not injected correctly.");
+            log.error("Self-proxy LogService is null! Async call will likely fail. Check Spring configuration/initialization.");
+            throw new IllegalStateException("Self-proxy for LogService was not injected correctly via setter.");
         }
         self.generateLogFileAsync(taskId, date);
     }
@@ -87,7 +88,7 @@ public class LogService {
         Path sourceLogPath = null;
         try {
             if (this.taskRegistry == null) {
-                log.error("!!! taskRegistry is NULL inside async method for task ID {} !!!", taskId);
+                log.error("!!! taskRegistry is NULL inside async method for task ID {} (should be final!)!!!", taskId);
                 throw new IllegalStateException("taskRegistry is null within async execution for task " + taskId);
             }
 
@@ -127,7 +128,6 @@ public class LogService {
             log.info(">>> ASYNC METHOD EXITING for task ID {} on thread {}", taskId, Thread.currentThread().getName());
         }
     }
-
 
     public Path getLogFilePathForDate(LocalDate date) {
         LocalDate today = LocalDate.now();

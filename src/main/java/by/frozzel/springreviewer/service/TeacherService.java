@@ -77,7 +77,7 @@ public class TeacherService {
 
     @Transactional
     public void deleteTeacher(Integer id) {
-        Teacher teacher = teacherRepository.findById(id)
+        teacherRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(TEACHER_RESOURCE, ID_FIELD, id));
         teacherRepository.deleteById(id);
     }
