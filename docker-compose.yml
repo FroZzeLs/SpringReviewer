@@ -3,19 +3,16 @@ services:
     image: postgres:${POSTGRES_VERSION:-15-alpine}
     container_name: myapp_postgres_db
     environment:
-      # Эти переменные берутся из .env и используются для инициализации контейнера БД
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      # Проброс порта 5432 контейнера на порт DB_PORT хоста (из .env)
       - "${DB_PORT:-5432}:5432"
     networks:
       - app-network
     healthcheck:
-      # Проверка использует пользователя и БД из .env
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
@@ -32,15 +29,10 @@ services:
       db:
         condition: service_healthy
     environment:
-      # --- Вот КЛЮЧЕВЫЕ строки для Spring Boot ---
-      # URL использует имя сервиса 'db', порт 5432 и имя БД из .env
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
-      # Имя пользователя берется из .env
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      # Пароль берется из .env
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      # --- Остальные переменные Spring ---
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update # или ваша стратегия
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
     ports:
       - "${BACKEND_PORT:-8080}:8080"
     networks:
