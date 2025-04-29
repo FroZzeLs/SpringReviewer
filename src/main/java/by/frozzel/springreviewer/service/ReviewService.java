@@ -83,7 +83,7 @@ public class ReviewService {
 
     @Transactional
     public void deleteReview(Integer id) {
-        Review reviewToDelete = reviewRepository.findById(id)
+        reviewRepository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("Review not found with id: {}", id);
                     return new ResourceNotFoundException(REVIEW_RESOURCE, ID_FIELD, id);
