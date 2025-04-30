@@ -58,7 +58,7 @@ const ReviewForm = ({ visible, onCreate, onUpdate, onCancel, editingReview }) =>
           comment: editingReview.comment,
         });
         setGradeInputValue(editingReview.grade !== null && editingReview.grade !== undefined ? String(editingReview.grade) : '');
-        setSelectedTeacherIdValue(currentTeacherId); // Установить для фильтрации предметов
+        setSelectedTeacherIdValue(currentTeacherId);
       } else {
         form.resetFields();
         setGradeInputValue('');
@@ -107,16 +107,16 @@ const ReviewForm = ({ visible, onCreate, onUpdate, onCancel, editingReview }) =>
 
   const handleTeacherChange = (teacherId) => {
     setSelectedTeacherIdValue(teacherId);
-    form.setFieldsValue({ subjectId: null }); // Сбросить выбранный предмет
+    form.setFieldsValue({ subjectId: null });
   };
 
   const availableSubjects = useMemo(() => {
     if (!selectedTeacherIdValue) {
-      return allSubjects; // Показываем все, если преподаватель не выбран
+      return allSubjects;
     }
     const selectedTeacher = allTeachers.find(t => t.id === selectedTeacherIdValue);
     if (!selectedTeacher || !selectedTeacher.subjects) {
-      return []; // Нет данных о преподавателе или его предметах
+      return [];
     }
     const teacherSubjectNames = selectedTeacher.subjects;
     return allSubjects.filter(subject => teacherSubjectNames.includes(subject.name));
@@ -196,13 +196,11 @@ const ReviewForm = ({ visible, onCreate, onUpdate, onCancel, editingReview }) =>
                   label="Предмет"
                   rules={[
                     { required: true, message: 'Выберите предмет!' },
-                    // Дополнительный валидатор, чтобы убедиться, что предмет ведется выбранным преподавателем
-                    // (на случай, если список доступных предметов не успел обновиться или есть ошибка)
                     ({ getFieldValue }) => ({
                       validator(_, value) {
                         const teacherId = getFieldValue('teacherId');
                         if (!teacherId || !value) {
-                          return Promise.resolve(); // Нет преподавателя или предмета - пропускаем
+                          return Promise.resolve();
                         }
                         const selectedTeacher = allTeachers.find(t => t.id === teacherId);
                         const subject = allSubjects.find(s => s.id === value);
@@ -216,13 +214,13 @@ const ReviewForm = ({ visible, onCreate, onUpdate, onCancel, editingReview }) =>
                       },
                     }),
                   ]}
-                  dependencies={['teacherId']} // Перепроверять при изменении teacherId
+                  dependencies={['teacherId']}
               >
                 <Select
                     placeholder={selectedTeacherIdValue ? "Выберите предмет преподавателя" : "Сначала выберите преподавателя"}
                     showSearch
                     filterOption={(input, option) => (option?.children ?? '').toLowerCase().includes(input.toLowerCase())}
-                    disabled={loading || !selectedTeacherIdValue} // Блокируем, пока не выбран преподаватель
+                    disabled={loading || !selectedTeacherIdValue}
                 >
                   {availableSubjects.map(subject => (
                       <Option key={subject.id} value={subject.id}>{subject.name}</Option>
