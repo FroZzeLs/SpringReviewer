@@ -9,7 +9,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "${DB_PORT}:5432"
     networks:
       - app-network
     healthcheck:
@@ -21,9 +21,7 @@ services:
     restart: unless-stopped
 
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: docker.io/frozzels/backend:${IMAGE_TAG}
     container_name: myapp_backend
     depends_on:
       db:
@@ -34,20 +32,18 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
     ports:
-      - "${BACKEND_PORT:-8080}:8080"
+      - "${BACKEND_PORT}:8080"
     networks:
       - app-network
     restart: unless-stopped
 
   frontend:
-    build:
-      context: ./frontend/my-reviewer-ui
-      dockerfile: Dockerfile
+    image: docker.io/frozzels/frontend:${IMAGE_TAG}
     container_name: myapp_frontend
     depends_on:
       - backend
     ports:
-      - "${FRONTEND_PORT:-3000}:80"
+      - "${FRONTEND_PORT}:80"
     networks:
       - app-network
     restart: unless-stopped
